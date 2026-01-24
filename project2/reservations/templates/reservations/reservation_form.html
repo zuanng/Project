@@ -1,0 +1,155 @@
+cat > templates/reservations/reservation_form.html << 'EOF'
+{% extends 'base.html' %}
+
+{% block title %}Đặt bàn - Nhà hàng{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="text-center mb-5">
+                <h2 class="display-5 fw-bold"><i class="fas fa-calendar-check"></i> Đặt bàn trước</h2>
+                <p class="text-muted">Đặt bàn trước để được phục vụ tốt nhất</p>
+            </div>
+
+            <div class="card shadow">
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <!-- Guest Info -->
+                        <h5 class="mb-3 text-primary">
+                            <i class="fas fa-user"></i> Thông tin khách hàng
+                        </h5>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Họ và tên <span class="text-danger">*</span></label>
+                                {{ form.guest_name }}
+                                {% if form.guest_name.errors %}
+                                    <div class="text-danger small">{{ form.guest_name.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Số điện thoại <span class="text-danger">*</span></label>
+                                {{ form.guest_phone }}
+                                {% if form.guest_phone.errors %}
+                                    <div class="text-danger small">{{ form.guest_phone.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">Email</label>
+                            {{ form.guest_email }}
+                            {% if form.guest_email.errors %}
+                                <div class="text-danger small">{{ form.guest_email.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- Reservation Details -->
+                        <h5 class="mb-3 text-primary">
+                            <i class="fas fa-calendar"></i> Thông tin đặt bàn
+                        </h5>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Ngày <span class="text-danger">*</span></label>
+                                {{ form.date }}
+                                {% if form.date.errors %}
+                                    <div class="text-danger small">{{ form.date.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Giờ <span class="text-danger">*</span></label>
+                                {{ form.time }}
+                                {% if form.time.errors %}
+                                    <div class="text-danger small">{{ form.time.errors }}</div>
+                                {% endif %}
+                                <small class="form-text text-muted">
+                                    Nhà hàng phục vụ: 10:00 - 22:00
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Số khách <span class="text-danger">*</span></label>
+                                {{ form.number_of_guests }}
+                                {% if form.number_of_guests.errors %}
+                                    <div class="text-danger small">{{ form.number_of_guests.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Dịp đặc biệt</label>
+                                {{ form.occasion }}
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">Yêu cầu đặc biệt</label>
+                            {{ form.special_request }}
+                            <small class="form-text text-muted">
+                                Ví dụ: Chỗ ngồi gần cửa sổ, có ghế cao cho trẻ em...
+                            </small>
+                        </div>
+
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+
+                        <!-- Info Box -->
+                        <div class="alert alert-info">
+                            <h6 class="alert-heading"><i class="fas fa-info-circle"></i> Lưu ý:</h6>
+                            <ul class="mb-0 small">
+                                <li>Vui lòng đặt bàn trước ít nhất 2 giờ</li>
+                                <li>Chúng tôi sẽ giữ bàn trong 15 phút sau giờ đặt</li>
+                                <li>Với nhóm trên 10 người, vui lòng gọi hotline: 0123 456 789</li>
+                                <li>Hủy đặt bàn miễn phí trước 2 giờ</li>
+                            </ul>
+                        </div>
+
+                        <!-- Submit Buttons -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'restaurant:home' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Hủy
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-check"></i> Xác nhận đặt bàn
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Why Book With Us -->
+            <div class="row mt-5">
+                <div class="col-md-4 text-center mb-3">
+                    <i class="fas fa-clock fa-3x text-primary mb-3"></i>
+                    <h5>Tiết kiệm thời gian</h5>
+                    <p class="text-muted small">Không phải chờ đợi, bàn luôn sẵn sàng</p>
+                </div>
+                <div class="col-md-4 text-center mb-3">
+                    <i class="fas fa-star fa-3x text-primary mb-3"></i>
+                    <h5>Chỗ ngồi tốt nhất</h5>
+                    <p class="text-muted small">Ưu tiên chọn vị trí theo yêu cầu</p>
+                </div>
+                <div class="col-md-4 text-center mb-3">
+                    <i class="fas fa-gift fa-3x text-primary mb-3"></i>
+                    <h5>Ưu đãi đặc biệt</h5>
+                    <p class="text-muted small">Giảm giá cho đặt bàn online</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+EOF

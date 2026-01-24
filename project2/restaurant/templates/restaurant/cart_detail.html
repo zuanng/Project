@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+
+{% block title %}Giỏ hàng - Nhà hàng{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4"><i class="fas fa-shopping-cart"></i> Giỏ hàng của bạn</h2>
+
+    {% if cart %}
+        <div class="row">
+            <!-- Cart Items -->
+            <div class="col-lg-8">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 100px;">Ảnh</th>
+                                        <th>Tên món</th>
+                                        <th style="width: 120px;">Đơn giá</th>
+                                        <th style="width: 150px;">Số lượng</th>
+                                        <th style="width: 120px;">Tổng</th>
+                                        <th style="width: 80px;"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in cart %}
+                                        <tr>
+                                            <!-- Image -->
+                                            <td>
+                                                <a href="{% url 'restaurant:menu_detail' item.menu_item.slug %}">
+                                                    {% if item.menu_item.image %}
+                                                        <img src="{{ item.menu_item.image.url }}" alt="{{ item.menu_item.name }}" class="img-thumbnail" style="width: 80px; height: 80px; object-fit: cover;">
+                                                    {% else %}
+                                                        <div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                                            <i class="fas fa-utensils"></i>
+                                                        </div>
+                                                    {% endif %}
+                                                </a>
+                                            </td>
+
+                                            <!-- Name -->
+                                            <td>
+                                                <a href="{% url 'restaurant:menu_detail' item.menu_item.slug %}" class="text-dark text-decoration-none fw-bold">
+                                                    {{ item.menu_item.name }}
+                                                </a>
+                                                <br>
+                                                <small class="text-muted">{{ item.menu_item.category.name }}</small>
+                                            </td>
+
+                                            <!-- Price -->
+                                            <td>
+                                                <span class="fw-bold">{{ item.price|floatformat:0 }}đ</span>
+                                            </td>
+
+                                            <!-- Quantity -->
+                                            <td>
+                                                <form method="post" action="{% url 'restaurant:cart_add' item.menu_item.id %}" class="d-flex align-items-center gap-2">
+                                                    {% csrf_token %}
+                                                    {{ item.update_quantity_form.quantity }}
+                                                    {{ item.update_quantity_form.override }}
+                                                    <button type="submit" class="btn btn-sm btn-outline-primary">
+                                                        <i class="fas fa-sync-alt"></i>
+                                                    </button>
+                                                </form>
+                                            </td>
+
+                                            <!-- Total -->
+                                            <td>
+                                                <span class="fw-bold text-primary">
+                                                    {{ item.total_price|floatformat:0 }}đ
+                                                </span>
+                                            </td>
+
+                                            <!-- Remove -->
+                                            <td>
+                                                <form method="post" action="{% url 'restaurant:cart_remove' item.menu_item.id %}">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'restaurant:menu_list' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-arrow-left"></i> Tiếp tục mua sắm
+                    </a>
+                </div>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="col-lg-4">
+                <div class="card shadow-sm sticky-top" style="top: 20px;">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-receipt"></i> Tóm tắt đơn hàng</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-3">
+                            <span>Tạm tính:</span>
+                            <span class="fw-bold">{{ cart.get_total_price|floatformat:0 }}đ</span>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mb-3">
+                            <span>Phí vận chuyển:</span>
+                            <span class="text-success">
+                                {% if cart.get_total_price >= 200000 %}
+                                    Miễn phí
+                                {% else %}
+                                    30.000đ
+                                {% endif %}
+                            </span>
+                        </div>
+                        
+                        <hr>
+                        
+                        <div class="d-flex justify-content-between mb-4">
+                            <span class="h5 mb-0">Tổng cộng:</span>
+                            <span class="h4 mb-0 text-primary fw-bold">
+                                {% if cart.get_total_price >= 200000 %}
+                                    {{ cart.get_total_price|floatformat:0 }}đ
+                                {% else %}
+                                    {{ cart.get_total_price|add:30000|floatformat:0 }}đ
+                                {% endif %}
+                            </span>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            {% if user.is_authenticated %}
+                                <a href="{% url 'orders:checkout' %}" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-check-circle"></i> Thanh toán
+                                </a>
+                            {% else %}
+                                <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-sign-in-alt"></i> Đăng nhập để đặt hàng
+                                </a>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="text-center mt-3">
+                            <small class="text-muted">
+                                <i class="fas fa-shield-alt"></i> Thanh toán an toàn & bảo mật
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Coupon Code -->
+                <div class="card shadow-sm mt-3">
+                    <div class="card-body">
+                        <h6 class="card-title"><i class="fas fa-tag"></i> Mã giảm giá</h6>
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="Nhập mã giảm giá">
+                            <button class="btn btn-outline-primary" type="button">
+                                Áp dụng
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cart Info -->
+                <div class="card shadow-sm mt-3">
+                    <div class="card-body text-center">
+                        <i class="fas fa-info-circle fa-2x text-primary mb-3"></i>
+                        <h6>Chính sách đặt hàng</h6>
+                        <ul class="text-start small text-muted mb-0">
+                            <li>Miễn phí vận chuyển cho đơn hàng trên 200.000đ</li>
+                            <li>Đổi trả trong vòng 24 giờ</li>
+                            <li>Thanh toán khi nhận hàng</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    {% else %}
+        <!-- Empty Cart -->
+        <div class="text-center py-5">
+            <i class="fas fa-shopping-cart fa-5x text-muted mb-4"></i>
+            <h3>Giỏ hàng trống</h3>
+            <p class="text-muted mb-4">Bạn chưa có món ăn nào trong giỏ hàng</p>
+            <a href="{% url 'restaurant:menu_list' %}" class="btn btn-primary btn-lg">
+                <i class="fas fa-utensils"></i> Khám phá thực đơn
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+    .sticky-top {
+        position: sticky;
+        top: 20px;
+        z-index: 1020;
+    }
+</style>
+{% endblock %}
