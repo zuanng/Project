@@ -69,7 +69,7 @@ def menu_list(request):
         menu_items = menu_items.order_by(sort_by)
 
     # Pagination
-    paginator = Paginator(menu_items, 12)
+    paginator = Paginator(menu_items, 6)
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
@@ -142,7 +142,7 @@ def category_detail(request, slug):
     ).annotate(avg_rating=Avg("reviews__rating"))
 
     # Pagination
-    paginator = Paginator(menu_items, 12)
+    paginator = Paginator(menu_items, 6)
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 

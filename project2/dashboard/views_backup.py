@@ -108,10 +108,21 @@ def orders_management(request):
         orders = orders.filter(payment_status=payment_filter)
 
     if date_from:
-        orders = orders.filter(created_at__date__gte=date_from)
+        # Convert to datetime with timezone awareness for accurate filtering
+        from django.utils import timezone as tz
+        from datetime import datetime, time
+        if date_from:
+            date_from_obj = datetime.strptime(date_from, '%Y-%m-%d').date()
+            date_from_datetime = tz.make_aware(datetime.combine(date_from_obj, time.min))
+            orders = orders.filter(created_at__gte=date_from_datetime)
 
     if date_to:
-        orders = orders.filter(created_at__date__lte=date_to)
+        from django.utils import timezone as tz
+        from datetime import datetime, time
+        if date_to:
+            date_to_obj = datetime.strptime(date_to, '%Y-%m-%d').date()
+            date_to_datetime = tz.make_aware(datetime.combine(date_to_obj, time.max))
+            orders = orders.filter(created_at__lte=date_to_datetime)
 
     orders = orders.order_by("-created_at")
 
@@ -194,6 +205,7 @@ def revenue_report(request):
 
     if period == "day":
         start_date = today - timedelta(days=7)
+        # Use explicit timezone-aware comparison
         date_field = TruncDate("created_at")
     elif period == "week":
         start_date = today - timedelta(weeks=12)
@@ -205,10 +217,12 @@ def revenue_report(request):
         start_date = today - timedelta(days=365 * 3)
         date_field = TruncMonth("created_at")
 
-    # Revenue data - use timezone-aware datetime filtering for better accuracy
+    # Revenue data - fixed approach that handles timezone properly
+    # Use datetime range with timezone awareness to avoid timezone conversion issues
     from django.utils import timezone as tz
     from datetime import datetime, time
     
+    # Calculate start datetime with timezone awareness
     start_datetime = tz.make_aware(datetime.combine(start_date, time.min))
     
     revenue_data = (
@@ -217,19 +231,22 @@ def revenue_report(request):
             status="completed",
             payment_status="paid",
         )
-        .annotate(period=date_field)
+        .annotate(period=TruncDate("created_at"))
         .values("period")
         .annotate(revenue=Sum("total_amount"), orders_count=Count("id"))
         .order_by("period")
     )
 
-    # Monthly comparison
+    # Monthly comparison - fixed timezone handling
     current_month = today.replace(day=1)
     last_month = (current_month - timedelta(days=1)).replace(day=1)
-
+    
+    current_month_start = tz.make_aware(datetime.combine(current_month, time.min))
+    last_month_start = tz.make_aware(datetime.combine(last_month, time.min))
+    
     current_month_revenue = (
         Order.objects.filter(
-            created_at__date__gte=current_month,
+            created_at__date=current_month,  # Use exact date match
             status="completed",
             payment_status="paid",
         ).aggregate(Sum("total_amount"))["total_amount__sum"]
@@ -246,36 +263,39 @@ def revenue_report(request):
         or 0
     )
 
-    # Revenue by category
+    # Revenue by category - fixed timezone handling
+    from datetime import datetime, time
+    start_datetime = tz.make_aware(datetime.combine(start_date, time.min))
+    
     revenue_by_category = (
         OrderItem.objects.filter(
             order__status="completed",
             order__payment_status="paid",
-            order__created_at__date__gte=start_date,
+            order__created_at__gte=start_datetime,
         )
         .values("menu_item__category__name")
         .annotate(revenue=Sum("price"), quantity=Sum("quantity"))
         .order_by("-revenue")
     )
 
-    # Revenue by payment method
+    # Revenue by payment method - fixed timezone handling
     revenue_by_payment = (
         Order.objects.filter(
             status="completed",
             payment_status="paid",
-            created_at__date__gte=start_date,
+            created_at__gte=start_datetime,
         )
         .values("payment_method")
         .annotate(revenue=Sum("total_amount"), count=Count("id"))
         .order_by("-revenue")
     )
 
-    # Top customers
+    # Top customers - fixed timezone handling
     top_customers = (
         Order.objects.filter(
             status="completed",
             payment_status="paid",
-            created_at__date__gte=start_date,
+            created_at__gte=start_datetime,
         )
         .values(
             "customer__username", "customer__first_name", "customer__last_name"
@@ -289,9 +309,9 @@ def revenue_report(request):
         "revenue_data": list(revenue_data),
         "current_month_revenue": current_month_revenue,
         "last_month_revenue": last_month_revenue,
-        "revenue_by_category": list(revenue_by_category),
-        "revenue_by_payment": list(revenue_by_payment),
-        "top_customers": list(top_customers),
+        "revenue_by_category": revenue_by_category,
+        "revenue_by_payment": revenue_by_payment,
+        "top_customers": top_customers,
     }
 
     return render(request, "dashboard/revenue_report.html", context)
@@ -453,13 +473,22 @@ def api_revenue_chart(request):
         .order_by("date")
     )
 
+    # Process the data to ensure no None values cause issues
+    labels = []
+    revenues = []
+    orders = []
+    
+    for item in revenue_data:
+        if item["date"] and item["revenue"] is not None:  # Only include valid entries
+            labels.append(item["date"].strftime("%d/%m"))
+            revenues.append(float(item["revenue"]) if item["revenue"] is not None else 0)
+            orders.append(int(item["orders"]) if item["orders"] is not None else 0)
+    
     return JsonResponse(
         {
-            "labels": [
-                item["date"].strftime("%d/%m") if item["date"] else "" for item in revenue_data
-            ],
-            "revenue": [float(item["revenue"]) if item["revenue"] else 0 for item in revenue_data],
-            "orders": [item["orders"] if item["orders"] else 0 for item in revenue_data],
+            "labels": labels,
+            "revenue": revenues,
+            "orders": orders,
         }
     )
 
@@ -484,6 +513,36 @@ def update_order_status(request, order_id):
 
             return JsonResponse(
                 {"success": True, "message": "Cập nhật trạng thái thành công"}
+            )
+
+    return JsonResponse({"success": False, "message": "Invalid request"})
+
+
+@login_required
+@admin_required
+def update_payment_status(request, order_id):
+    """Cập nhật trạng thái thanh toán đơn hàng"""
+    if request.method == "POST":
+        order = get_object_or_404(Order, id=order_id)
+        new_payment_status = request.POST.get("payment_status")
+
+        if new_payment_status in dict(Order.PAYMENT_STATUS_CHOICES):
+            old_payment_status = order.payment_status
+            order.payment_status = new_payment_status
+            
+            # Nếu thanh toán được xác nhận là đã thanh toán, cập nhật lại tổng doanh thu
+            if new_payment_status == "paid" and old_payment_status != "paid":
+                # Không cần làm gì đặc biệt ở đây vì doanh thu sẽ được tính khi truy vấn
+                pass
+            elif new_payment_status == "pending" and old_payment_status == "paid":
+                # Tương tự, không cần làm gì đặc biệt
+                
+                pass
+            
+            order.save()
+
+            return JsonResponse(
+                {"success": True, "message": "Cập nhật trạng thái thanh toán thành công"}
             )
 
     return JsonResponse({"success": False, "message": "Invalid request"})

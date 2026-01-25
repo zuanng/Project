@@ -35,4 +35,9 @@ urlpatterns = [
         views.update_reservation_status,
         name="update_reservation_status",
     ),
+    path(
+        "api/order/<int:order_id>/payment-status/",
+        views.update_payment_status,
+        name="update_payment_status",
+    ),
 ]

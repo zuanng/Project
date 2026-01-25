@@ -80,7 +80,7 @@
                     {% if user.is_authenticated %}
                         <li class="nav-item">
                             <a class="nav-link position-relative" href="{% url 'restaurant:cart_detail' %}">
-                                <i class="fas fa-shopping-cart"></i> Giỏ hàng
+                                <i class="fas fa-shopping-cart"></i>
                                 {% if cart|length > 0 %}
                                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
                                         {{ cart|length }}
@@ -95,19 +95,26 @@
                                 </a>
                             </li>
                         {% endif %}
+                        <!-- User Dropdown -->
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                            data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-user"></i> {{ user.username }}
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                                 <li>
                                     <a class="dropdown-item" href="{% url 'accounts:profile' %}">
                                         <i class="fas fa-id-card"></i> Hồ sơ
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="#">
+                                    <a class="dropdown-item" href="{% url 'orders:order_list' %}">
                                         <i class="fas fa-shopping-bag"></i> Đơn hàng
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'reservations:reservation_list' %}">
+                                        <i class="fas fa-calendar-check"></i> Đặt bàn
                                     </a>
                                 </li>
                                 <li><hr class="dropdown-divider"></li>

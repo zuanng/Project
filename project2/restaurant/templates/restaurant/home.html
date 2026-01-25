@@ -10,22 +10,20 @@
             <div class="col-lg-6">
                 <h1 class="display-4 fw-bold mb-4">Chào mừng đến Nhà Hàng FourSeason</h1>
                 <p class="lead mb-4">
-                    Trải nghiệm hương vị tuyệt vời với những món ăn được chế biến từ 
+                    Trải nghiệm hương vị tuyệt vời với những món ăn được chế biến từ
                     nguyên liệu tươi ngon nhất, phục vụ bởi đội ngũ đầu bếp tài năng.
                 </p>
                 <div class="d-flex gap-2">
                     <a href="{% url 'restaurant:menu_list' %}" class="btn btn-primary btn-lg">
                         <i class="fas fa-book-open"></i> Xem thực đơn
                     </a>
-                    {% if not user.is_authenticated %}
-                        <a href="{% url 'accounts:register' %}" class="btn btn-outline-primary btn-lg">
-                            <i class="fas fa-user-plus"></i> Đăng ký
-                        </a>
-                    {% endif %}
+                    <a href="{% url 'reservations:reservation_create' %}" class="btn btn-outline-primary btn-lg">
+                        <i class="fas fa-calendar-check"></i> Đặt bàn
+                    </a>
                 </div>
             </div>
             <div class="col-lg-6">
-                <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800" 
+                <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800"
                      alt="Restaurant" class="img-fluid rounded shadow">
             </div>
         </div>
@@ -66,20 +64,8 @@
                         </div>
                         
                         <p class="card-text text-muted small">
-                            {{ item.description|truncatewords:20 }}
+                            {{ item.description|truncatewords:15 }}
                         </p>
-                        
-                        <div class="d-flex align-items-center mb-2">
-                            {% if item.is_vegetarian %}
-                                <span class="badge bg-success me-1"><i class="fas fa-leaf"></i> Chay</span>
-                            {% endif %}
-                            {% if item.is_spicy %}
-                                <span class="badge bg-danger me-1"><i class="fas fa-pepper-hot"></i> Cay</span>
-                            {% endif %}
-                            <small class="text-muted ms-auto">
-                                <i class="far fa-clock"></i> {{ item.preparation_time }} phút
-                            </small>
-                        </div>
                         
                         <div class="d-flex justify-content-between align-items-center mt-3">
                             <div>
@@ -110,84 +96,6 @@
             <a href="{% url 'restaurant:menu_list' %}" class="btn btn-outline-primary btn-lg">
                 Xem tất cả món ăn <i class="fas fa-arrow-right"></i>
             </a>
-        </div>
-    </div>
-</section>
-{% endif %}
-
-<!-- Categories -->
-{% if categories %}
-<section class="py-5 bg-light">
-    <div class="container">
-        <div class="text-center mb-5">
-            <h2 class="display-5 fw-bold">Danh Mục Món Ăn</h2>
-            <p class="text-muted">Khám phá các loại món ăn đa dạng</p>
-        </div>
-        
-        <div class="row g-4">
-            {% for category in categories %}
-            <div class="col-md-4 col-lg-2">
-                <a href="{% url 'restaurant:category_detail' category.slug %}" class="text-decoration-none">
-                    <div class="card text-center h-100 shadow-sm hover-shadow">
-                        {% if category.image %}
-                            <img src="{{ category.image.url }}" class="card-img-top" alt="{{ category.name }}" style="height: 150px; object-fit: cover;">
-                        {% else %}
-                            <div class="bg-primary text-white d-flex align-items-center justify-content-center" style="height: 150px;">
-                                <i class="fas fa-utensils fa-3x"></i>
-                            </div>
-                        {% endif %}
-                        <div class="card-body">
-                            <h6 class="card-title">{{ category.name }}</h6>
-                        </div>
-                    </div>
-                </a>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-</section>
-{% endif %}
-
-<!-- Chefs -->
-{% if chefs %}
-<section class="py-5">
-    <div class="container">
-        <div class="text-center mb-5">
-            <h2 class="display-5 fw-bold">Đội Ngũ Đầu Bếp</h2>
-            <p class="text-muted">Những bàn tay tài hoa tạo nên hương vị tuyệt vời</p>
-        </div>
-        
-        <div class="row g-4">
-            {% for chef in chefs %}
-            <div class="col-md-6 col-lg-3">
-                <div class="card text-center h-100 shadow-sm">
-                    {% if chef.image %}
-                        <img src="{{ chef.image.url }}" class="card-img-top" alt="{{ chef.name }}" style="height: 300px; object-fit: cover;">
-                    {% endif %}
-                    <div class="card-body">
-                        <h5 class="card-title">{{ chef.name }}</h5>
-                        <p class="text-muted small">{{ chef.position }}</p>
-                        {% if chef.specialization %}
-                            <p class="text-primary small mb-2">
-                                <i class="fas fa-award"></i> {{ chef.specialization }}
-                            </p>
-                        {% endif %}
-                        <div class="d-flex justify-content-center gap-2">
-                            {% if chef.facebook %}
-                                <a href="{{ chef.facebook }}" class="btn btn-sm btn-outline-primary rounded-circle" target="_blank">
-                                    <i class="fab fa-facebook-f"></i>
-                                </a>
-                            {% endif %}
-                            {% if chef.instagram %}
-                                <a href="{{ chef.instagram }}" class="btn btn-sm btn-outline-danger rounded-circle" target="_blank">
-                                    <i class="fab fa-instagram"></i>
-                                </a>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
         </div>
     </div>
 </section>

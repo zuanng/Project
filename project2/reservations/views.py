@@ -6,56 +6,53 @@ from .models import Reservation, Table
 from .forms import ReservationForm
 from accounts.decorators import customer_required
 
-
 @login_required
 @customer_required
 def reservation_create(request):
     """Tạo đặt bàn mới"""
-    if request.method == "POST":
+    if request.method == 'POST':
         form = ReservationForm(request.POST, user=request.user)
-
+        
         if form.is_valid():
             reservation = form.save(commit=False)
             reservation.customer = request.user
-
+            
             # Tìm bàn phù hợp
-            suitable_table = (
-                Table.objects.filter(
-                    capacity__gte=reservation.number_of_guests,
-                    is_active=True,
-                    status="available",
-                )
-                .order_by("capacity")
-                .first()
-            )
-
+            suitable_table = Table.objects.filter(
+                capacity__gte=reservation.number_of_guests,
+                is_active=True,
+                status='available'
+            ).order_by('capacity').first()
+            
             if suitable_table:
                 reservation.table = suitable_table
                 reservation.save()
-
+                
                 messages.success(
                     request,
-                    f"Đặt bàn thành công! Mã đặt bàn: {reservation.reservation_number}",
+                    f'Đặt bàn thành công! Mã đặt bàn: {reservation.reservation_number}'
                 )
-                return redirect(
-                    "reservations:reservation_detail",
-                    reservation_number=reservation.reservation_number,
-                )
+                return redirect('reservations:reservation_detail',
+                              reservation_number=reservation.reservation_number)
             else:
+                # Vẫn lưu reservation nhưng chưa có bàn
+                reservation.save()
                 messages.warning(
                     request,
-                    "Hiện tại không có bàn phù hợp. Chúng tôi sẽ liên hệ lại với bạn.",
+                    'Đặt bàn thành công! Chúng tôi sẽ sắp xếp bàn phù hợp và liên hệ lại với bạn.'
                 )
-                reservation.save()
-                return redirect("reservations:reservation_list")
+                return redirect('reservations:reservation_detail',
+                              reservation_number=reservation.reservation_number)
+        else:
+            # Nếu form có lỗi, hiển thị lại form với errors
+            messages.error(request, 'Có lỗi trong thông tin đặt bàn. Vui lòng kiểm tra lại.')
     else:
         form = ReservationForm(user=request.user)
-
+    
     context = {
-        "form": form,
+        'form': form,
     }
-    return render(request, "reservations/reservation_form.html", context)
-
+    return render(request, 'reservations/reservation_form.html', context)
 
 @login_required
 @customer_required
