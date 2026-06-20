@@ -1,71 +1,61 @@
-cat > templates/reservations/reservation_list.html << 'EOF'
 {% extends 'base.html' %}
 
 {% block title %}Đặt bàn của tôi - Nhà hàng{% endblock %}
 
 {% block content %}
-<div class="container py-4">
+<div class="container-fluid px-4 py-3">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="fas fa-calendar-alt"></i> Đặt bàn của tôi</h2>
+        <h2 class="fw-bold" style="color: #fff;"><i class="fas fa-calendar-alt"></i> Đặt bàn của tôi</h2>
         <a href="{% url 'reservations:reservation_create' %}" class="btn btn-primary">
             <i class="fas fa-plus"></i> Đặt bàn mới
         </a>
     </div>
 
     {% if reservations %}
-        <div class="row">
+        <div class="row g-3">
             {% for reservation in reservations %}
-                <div class="col-md-6 col-lg-4 mb-4">
+                <div class="col-md-6 col-lg-4">
                     <div class="card shadow-sm h-100">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <span class="fw-bold">#{{ reservation.reservation_number }}</span>
+                        <div class="card-header d-flex justify-content-between align-items-center py-2">
+                            <span class="fw-bold small">#{{ reservation.reservation_number }}</span>
                             <span class="badge bg-{{ reservation.get_status_display_class }}">
                                 {{ reservation.get_status_display }}
                             </span>
                         </div>
                         <div class="card-body">
-                            <!-- Date & Time -->
-                            <div class="mb-3">
-                                <div class="d-flex align-items-center mb-2">
-                                    <i class="fas fa-calendar text-primary me-2"></i>
+                            <div class="mb-2">
+                                <div class="d-flex align-items-center mb-1">
+                                    <i class="fas fa-calendar text-primary me-2" style="width: 16px;"></i>
                                     <strong>{{ reservation.date|date:"d/m/Y" }}</strong>
                                 </div>
-                                <div class="d-flex align-items-center mb-2">
-                                    <i class="fas fa-clock text-primary me-2"></i>
+                                <div class="d-flex align-items-center mb-1">
+                                    <i class="fas fa-clock text-primary me-2" style="width: 16px;"></i>
                                     <strong>{{ reservation.time|time:"H:i" }}</strong>
                                 </div>
                                 <div class="d-flex align-items-center">
-                                    <i class="fas fa-users text-primary me-2"></i>
+                                    <i class="fas fa-users text-primary me-2" style="width: 16px;"></i>
                                     <span>{{ reservation.number_of_guests }} khách</span>
                                 </div>
                             </div>
-
-                            <hr>
-
-                            <!-- Guest Info -->
-                            <div class="mb-3">
+                            <hr class="my-2">
+                            <div class="mb-2">
                                 <small class="text-muted">Người đặt</small>
-                                <p class="mb-1"><i class="fas fa-user"></i> {{ reservation.guest_name }}</p>
-                                <p class="mb-0"><i class="fas fa-phone"></i> {{ reservation.guest_phone }}</p>
+                                <p class="mb-0 small"><i class="fas fa-user"></i> {{ reservation.guest_name }}</p>
+                                <p class="mb-0 small"><i class="fas fa-phone"></i> {{ reservation.guest_phone }}</p>
                             </div>
-
-                            <!-- Table Info -->
                             {% if reservation.table %}
-                                <div class="mb-3">
-                                    <small class="text-muted">Bàn số</small>
+                                <div class="mb-2">
+                                    <small class="text-muted">Bàn</small>
                                     <p class="mb-0 fw-bold text-primary">
                                         {{ reservation.table.number }} ({{ reservation.table.get_location_display }})
                                     </p>
                                 </div>
                             {% endif %}
-
-                            <!-- Actions -->
-                            <div class="d-grid gap-2">
-                                <a href="{% url 'reservations:reservation_detail' reservation.reservation_number %}" 
+                            <div class="d-grid gap-1">
+                                <a href="{% url 'reservations:reservation_detail' reservation.reservation_number %}"
                                    class="btn btn-outline-primary btn-sm">
                                     <i class="fas fa-eye"></i> Xem chi tiết
                                 </a>
-                                
                                 {% if reservation.status in 'pending,confirmed' and reservation.is_upcoming %}
                                     <form method="post" action="{% url 'reservations:cancel_reservation' reservation.reservation_number %}"
                                           onsubmit="return confirm('Bạn có chắc muốn hủy đặt bàn này?')">
@@ -77,8 +67,8 @@ cat > templates/reservations/reservation_list.html << 'EOF'
                                 {% endif %}
                             </div>
                         </div>
-                        <div class="card-footer text-muted small">
-                            <i class="far fa-clock"></i> Đặt lúc: {{ reservation.created_at|date:"d/m/Y H:i" }}
+                        <div class="card-footer text-muted small py-1">
+                            <i class="far fa-clock"></i> {{ reservation.created_at|date:"d/m/Y H:i" }}
                         </div>
                     </div>
                 </div>
@@ -87,7 +77,7 @@ cat > templates/reservations/reservation_list.html << 'EOF'
     {% else %}
         <div class="text-center py-5">
             <i class="fas fa-calendar-times fa-5x text-muted mb-4"></i>
-            <h3>Bạn chưa có lịch đặt bàn nào</h3>
+            <h3 style="color: #fff;">Bạn chưa có lịch đặt bàn nào</h3>
             <p class="text-muted mb-4">Đặt bàn trước để có trải nghiệm tốt nhất</p>
             <a href="{% url 'reservations:reservation_create' %}" class="btn btn-primary btn-lg">
                 <i class="fas fa-calendar-plus"></i> Đặt bàn ngay
@@ -96,4 +86,3 @@ cat > templates/reservations/reservation_list.html << 'EOF'
     {% endif %}
 </div>
 {% endblock %}
-EOF

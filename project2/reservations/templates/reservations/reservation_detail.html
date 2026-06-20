@@ -3,73 +3,67 @@
 {% block title %}Đặt bàn #{{ reservation.reservation_number }} - Nhà hàng FourSeason{% endblock %}
 
 {% block content %}
-<div class="container py-4">
+<div class="container-fluid px-4 py-3">
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <!-- Header -->
             <div class="text-center mb-4">
-                <h2 class="mb-3">Xác nhận đặt bàn</h2>
-                <span class="badge bg-{{ reservation.get_status_display_class }} fs-5">
+                <h2 class="fw-bold" style="color: #fff;">Xác nhận đặt bàn</h2>
+                <span class="badge bg-{{ reservation.get_status_display_class }} fs-6">
                     {{ reservation.get_status_display }}
                 </span>
             </div>
 
-            <!-- Reservation Card -->
             <div class="card shadow-lg mb-4">
-                <div class="card-header bg-primary text-white text-center py-3">
-                    <h4 class="mb-0">Mã đặt bàn: #{{ reservation.reservation_number }}</h4>
+                <div class="card-header bg-primary text-white text-center py-2">
+                    <h5 class="mb-0">Mã đặt bàn: #{{ reservation.reservation_number }}</h5>
                 </div>
                 <div class="card-body p-4">
-                    <!-- Date & Time Info -->
-                    <div class="row mb-4">
-                        <div class="col-md-6 text-center mb-3">
-                            <div class="card bg-light h-100">
-                                <div class="card-body">
-                                    <i class="fas fa-calendar-day fa-3x text-primary mb-3"></i>
-                                    <h5>Ngày đặt</h5>
-                                    <h3 class="text-primary mb-0">{{ reservation.date|date:"d/m/Y" }}</h3>
-                                    <p class="text-muted mb-0">{{ reservation.date|date:"l" }}</p>
+                    <!-- Date & Time -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <div class="card h-100 border-0" style="background: rgba(255,107,53,0.08);">
+                                <div class="card-body text-center py-3">
+                                    <i class="fas fa-calendar-day fa-2x text-primary mb-2"></i>
+                                    <h6>Ngày đặt</h6>
+                                    <h4 class="text-primary mb-0">{{ reservation.date|date:"d/m/Y" }}</h4>
+                                    <p class="text-muted mb-0 small">{{ reservation.date|date:"l" }}</p>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6 text-center mb-3">
-                            <div class="card bg-light h-100">
-                                <div class="card-body">
-                                    <i class="fas fa-clock fa-3x text-primary mb-3"></i>
-                                    <h5>Giờ đặt</h5>
-                                    <h3 class="text-primary mb-0">{{ reservation.time|time:"H:i" }}</h3>
-                                    <p class="text-muted mb-0">{{ reservation.duration_hours }} giờ</p>
+                        <div class="col-md-6">
+                            <div class="card h-100 border-0" style="background: rgba(0,78,137,0.08);">
+                                <div class="card-body text-center py-3">
+                                    <i class="fas fa-clock fa-2x text-primary mb-2"></i>
+                                    <h6>Giờ đặt</h6>
+                                    <h4 class="text-primary mb-0">{{ reservation.time|time:"H:i" }}</h4>
+                                    <p class="text-muted mb-0 small">{{ reservation.duration_hours }} giờ</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Guest Info -->
-                    <div class="card bg-light mb-4">
-                        <div class="card-body">
-                            <h5 class="card-title mb-3">
-                                <i class="fas fa-user-circle"></i> Thông tin khách
-                            </h5>
-                            <div class="row">
-                                <div class="col-md-6 mb-2">
-                                    <label class="text-muted small">Họ và tên</label>
+                    <div class="card mb-3">
+                        <div class="card-body py-3">
+                            <h6 class="mb-2"><i class="fas fa-user-circle text-primary"></i> Thông tin khách</h6>
+                            <div class="row g-2">
+                                <div class="col-md-6">
+                                    <small class="text-muted">Họ và tên</small>
                                     <p class="mb-0 fw-bold">{{ reservation.guest_name }}</p>
                                 </div>
-                                <div class="col-md-6 mb-2">
-                                    <label class="text-muted small">Số điện thoại</label>
+                                <div class="col-md-6">
+                                    <small class="text-muted">SĐT</small>
                                     <p class="mb-0 fw-bold">{{ reservation.guest_phone }}</p>
                                 </div>
                                 {% if reservation.guest_email %}
-                                    <div class="col-md-6 mb-2">
-                                        <label class="text-muted small">Email</label>
+                                    <div class="col-md-6">
+                                        <small class="text-muted">Email</small>
                                         <p class="mb-0">{{ reservation.guest_email }}</p>
                                     </div>
                                 {% endif %}
-                                <div class="col-md-6 mb-2">
-                                    <label class="text-muted small">Số khách</label>
-                                    <p class="mb-0 fw-bold">
-                                        <i class="fas fa-users text-primary"></i> {{ reservation.number_of_guests }} người
-                                    </p>
+                                <div class="col-md-6">
+                                    <small class="text-muted">Số khách</small>
+                                    <p class="mb-0 fw-bold"><i class="fas fa-users text-primary"></i> {{ reservation.number_of_guests }} người</p>
                                 </div>
                             </div>
                         </div>
@@ -77,70 +71,52 @@
 
                     <!-- Table Info -->
                     {% if reservation.table %}
-                        <div class="card bg-light mb-4">
-                            <div class="card-body">
-                                <h5 class="card-title mb-3">
-                                    <i class="fas fa-chair"></i> Thông tin bàn
-                                </h5>
-                                <div class="row">
-                                    <div class="col-md-6 mb-2">
-                                        <label class="text-muted small">Số bàn</label>
+                        <div class="card mb-3">
+                            <div class="card-body py-3">
+                                <h6 class="mb-2"><i class="fas fa-chair text-primary"></i> Thông tin bàn</h6>
+                                <div class="row g-2">
+                                    <div class="col-md-4">
+                                        <small class="text-muted">Số bàn</small>
                                         <p class="mb-0 fw-bold text-primary fs-4">{{ reservation.table.number }}</p>
                                     </div>
-                                    <div class="col-md-6 mb-2">
-                                        <label class="text-muted small">Vị trí</label>
+                                    <div class="col-md-4">
+                                        <small class="text-muted">Vị trí</small>
                                         <p class="mb-0">{{ reservation.table.get_location_display }}</p>
                                     </div>
-                                    <div class="col-md-6 mb-2">
-                                        <label class="text-muted small">Sức chứa</label>
+                                    <div class="col-md-4">
+                                        <small class="text-muted">Sức chứa</small>
                                         <p class="mb-0">{{ reservation.table.capacity }} người</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     {% else %}
-                        <div class="alert alert-warning">
-                            <i class="fas fa-info-circle"></i> 
-                            Chúng tôi đang sắp xếp bàn phù hợp cho bạn. Sẽ liên hệ lại sớm nhất.
+                        <div class="alert alert-warning py-2">
+                            <i class="fas fa-info-circle"></i> Chúng tôi đang sắp xếp bàn phù hợp. Sẽ liên hệ lại sớm.
                         </div>
                     {% endif %}
 
-                    <!-- Special Request & Occasion -->
+                    <!-- Special Request -->
                     {% if reservation.occasion or reservation.special_request %}
-                        <div class="card bg-light mb-4">
-                            <div class="card-body">
-                                <h5 class="card-title mb-3">
-                                    <i class="fas fa-info-circle"></i> Thông tin thêm
-                                </h5>
+                        <div class="card mb-3">
+                            <div class="card-body py-3">
+                                <h6 class="mb-2"><i class="fas fa-info-circle text-primary"></i> Thông tin thêm</h6>
                                 {% if reservation.occasion %}
-                                    <div class="mb-2">
-                                        <label class="text-muted small">Dịp đặc biệt</label>
-                                        <p class="mb-0">
-                                            <i class="fas fa-gift text-primary"></i> {{ reservation.get_occasion_display }}
-                                        </p>
-                                    </div>
+                                    <p class="mb-1"><i class="fas fa-gift text-primary"></i> {{ reservation.get_occasion_display }}</p>
                                 {% endif %}
                                 {% if reservation.special_request %}
-                                    <div>
-                                        <label class="text-muted small">Yêu cầu đặc biệt</label>
-                                        <p class="mb-0 fst-italic">{{ reservation.special_request }}</p>
-                                    </div>
+                                    <p class="mb-0 fst-italic small">{{ reservation.special_request }}</p>
                                 {% endif %}
                             </div>
                         </div>
                     {% endif %}
 
-                    <!-- Deposit Info -->
+                    <!-- Deposit -->
                     {% if reservation.deposit_required %}
-                        <div class="alert {% if reservation.deposit_paid %}alert-success{% else %}alert-warning{% endif %}">
-                            <h6 class="alert-heading">
-                                <i class="fas fa-money-bill"></i> Thông tin đặt cọc
-                            </h6>
-                            <p class="mb-0">
-                                Số tiền cọc: <strong>{{ reservation.deposit_amount|floatformat:0 }}đ</strong>
-                            </p>
-                            <p class="mb-0">
-                                Trạng thái: 
+                        <div class="alert py-2 {% if reservation.deposit_paid %}alert-success{% else %}alert-warning{% endif %}">
+                            <h6 class="alert-heading small"><i class="fas fa-money-bill"></i> Đặt cọc</h6>
+                            <p class="mb-0 small">
+                                Số tiền: <strong>{{ reservation.deposit_amount|floatformat:0 }}đ</strong> |
                                 {% if reservation.deposit_paid %}
                                     <span class="badge bg-success">Đã thanh toán</span>
                                 {% else %}
@@ -150,8 +126,8 @@
                         </div>
                     {% endif %}
 
-                    <!-- Status Info -->
-                    <div class="row mb-4">
+                    <!-- Timestamps -->
+                    <div class="row mb-3 small">
                         <div class="col-md-6">
                             <small class="text-muted">Ngày tạo</small>
                             <p class="mb-0">{{ reservation.created_at|date:"d/m/Y H:i" }}</p>
@@ -170,16 +146,14 @@
                             <form method="post" action="{% url 'reservations:cancel_reservation' reservation.reservation_number %}"
                                   onsubmit="return confirm('Bạn có chắc muốn hủy đặt bàn này?')">
                                 {% csrf_token %}
-                                <button type="submit" class="btn btn-danger btn-lg w-100">
+                                <button type="submit" class="btn btn-danger w-100">
                                     <i class="fas fa-times"></i> Hủy đặt bàn
                                 </button>
                             </form>
                         {% endif %}
-                        
                         <a href="{% url 'reservations:reservation_list' %}" class="btn btn-outline-primary">
                             <i class="fas fa-list"></i> Xem tất cả đặt bàn
                         </a>
-                        
                         <a href="{% url 'restaurant:menu_list' %}" class="btn btn-outline-secondary">
                             <i class="fas fa-utensils"></i> Xem thực đơn
                         </a>
@@ -187,17 +161,16 @@
                 </div>
             </div>
 
-            <!-- Important Notes -->
-            <div class="card border-primary">
-                <div class="card-header bg-primary text-white">
+            <!-- Notes -->
+            <div class="card">
+                <div class="card-header bg-primary text-white py-2">
                     <h6 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Lưu ý quan trọng</h6>
                 </div>
-                <div class="card-body">
-                    <ul class="mb-0">
-                        <li>Vui lòng đến đúng giờ, chúng tôi sẽ giữ bàn trong 15 phút</li>
-                        <li>Nếu muốn hủy, vui lòng thông báo trước ít nhất 2 giờ</li>
-                        <li>Hotline hỗ trợ: <strong>0123 456 789</strong></li>
-                        <li>Địa chỉ: 123 Đường ABC, Quận XYZ, Hà Nội</li>
+                <div class="card-body py-2">
+                    <ul class="mb-0 small">
+                        <li>Vui lòng đến đúng giờ, giữ bàn trong 15 phút</li>
+                        <li>Hủy trước ít nhất 2 giờ</li>
+                        <li>Hotline: <strong>0123 456 789</strong></li>
                     </ul>
                 </div>
             </div>

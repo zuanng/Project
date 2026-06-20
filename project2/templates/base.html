@@ -4,56 +4,181 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Nhà hàng FourSeason{% endblock %}</title>
-    
+
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <style>
         :root {
             --primary-color: #ff6b35;
             --secondary-color: #004e89;
+            --bg-gradient-start: #0a1628;
+            --bg-gradient-end: #1a2a4a;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --text-main: #1a1a2e;
         }
-        
+
         body {
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 50%, #0d2137 100%);
+            background-attachment: fixed;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
         }
-        
+
+        /* Subtle pattern overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                radial-gradient(ellipse at 20% 50%, rgba(255, 107, 53, 0.05) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(0, 78, 137, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 80%, rgba(255, 107, 53, 0.03) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
         .navbar {
-            background-color: var(--secondary-color);
+            background: linear-gradient(90deg, rgba(0, 78, 137, 0.95) 0%, rgba(10, 22, 40, 0.98) 100%) !important;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+            padding: 0.6rem 0;
         }
-        
+
+        .navbar-brand {
+            font-size: 1.3rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-link {
+            font-weight: 500;
+            padding: 0.5rem 1rem !important;
+            border-radius: 0.4rem;
+            transition: all 0.2s ease;
+        }
+
+        .nav-link:hover {
+            background: rgba(255, 107, 53, 0.15);
+            color: var(--primary-color) !important;
+        }
+
         .btn-primary {
-            background-color: var(--primary-color);
+            background: linear-gradient(135deg, var(--primary-color) 0%, #e55a2b 100%);
+            border: none;
+            box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #e55a2b 0%, #d04a1b 100%);
+            box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .btn-outline-primary {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .btn-outline-primary:hover {
+            background: var(--primary-color);
             border-color: var(--primary-color);
         }
-        
-        .btn-primary:hover {
-            background-color: #e55a2b;
-            border-color: #e55a2b;
-        }
-        
+
         main {
             flex: 1;
+            position: relative;
+            z-index: 1;
         }
-        
+
+        /* Card styling for all content cards */
+        .card {
+            background: var(--card-bg);
+            border: none;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .card-header {
+            font-weight: 600;
+        }
+
+        /* Section backgrounds */
+        .bg-light {
+            background-color: rgba(255, 255, 255, 0.03) !important;
+        }
+
         footer {
-            background-color: #333;
-            color: white;
+            background: linear-gradient(90deg, rgba(10, 22, 40, 0.98) 0%, rgba(0, 78, 137, 0.95) 100%) !important;
+            color: rgba(255, 255, 255, 0.7);
             margin-top: auto;
+            position: relative;
+            z-index: 1;
+            padding: 2rem 0 !important;
+        }
+
+        footer h5 {
+            color: white;
+            font-weight: 600;
+        }
+
+        /* Alerts */
+        .alert {
+            border: none;
+            border-radius: 0.5rem;
+        }
+
+        /* Tables */
+        .table {
+            color: var(--text-main);
+        }
+
+        /* Form controls */
+        .form-control, .form-select {
+            border-radius: 0.4rem;
+        }
+
+        /* Badge styling */
+        .badge {
+            font-weight: 500;
+        }
+
+        /* Dropdown */
+        .dropdown-menu {
+            border: none;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-gradient-start);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 107, 53, 0.4);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 107, 53, 0.6);
         }
     </style>
-    
+
     {% block extra_css %}{% endblock %}
 </head>
 <body>
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark">
-        <div class="container">
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container-fluid px-4">
             <a class="navbar-brand" href="{% url 'restaurant:home' %}">
                 <i class="fas fa-utensils"></i> Nhà Hàng FourSeason
             </a>
@@ -75,7 +200,7 @@
                         <a class="nav-link" href="{% url 'restaurant:chefs_list' %}">Đầu bếp</a>
                     </li>
                 </ul>
-                
+
                 <ul class="navbar-nav">
                     {% if user.is_authenticated %}
                         <li class="nav-item">
@@ -112,11 +237,6 @@
                                         <i class="fas fa-calendar-check"></i> Đặt bàn
                                     </a>
                                 </li>
-                                <li>
-                                    <a class="dropdown-item" href="{% url 'reservations:reservation_list' %}">
-                                        <i class="fas fa-calendar-check"></i> Đặt bàn
-                                    </a>
-                                </li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <a class="dropdown-item" href="{% url 'accounts:logout' %}">
@@ -144,7 +264,7 @@
 
     <!-- Messages -->
     {% if messages %}
-        <div class="container mt-3">
+        <div class="container-fluid px-4 mt-3">
             {% for message in messages %}
                 <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
                     {{ message }}
@@ -155,14 +275,14 @@
     {% endif %}
 
     <!-- Main Content -->
-    <main class="py-4">
+    <main>
         {% block content %}{% endblock %}
     </main>
 
     <!-- Footer -->
-    <footer class="py-4 mt-5">
-        <div class="container">
-            <div class="row">
+    <footer class="mt-5">
+        <div class="container-fluid px-4">
+            <div class="row g-4">
                 <div class="col-md-4">
                     <h5><i class="fas fa-utensils"></i> Nhà Hàng FourSeason</h5>
                     <p>Hương vị tuyệt vời, phục vụ tận tâm</p>
@@ -181,7 +301,7 @@
                     </p>
                 </div>
             </div>
-            <hr class="bg-light">
+            <hr class="bg-secondary">
             <div class="text-center">
                 <p class="mb-0">&copy; 2025 Restaurant. All rights reserved.</p>
             </div>
@@ -190,7 +310,7 @@
 
     <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
+
     {% block extra_js %}{% endblock %}
 </body>
 </html>
