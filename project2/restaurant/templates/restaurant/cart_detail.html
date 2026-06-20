@@ -1,10 +1,10 @@
 {% extends 'base.html' %}
 
-{% block title %}Giỏ hàng - Nhà hàng{% endblock %}
+{% block title %}Đặt món tại bàn - Nhà hàng{% endblock %}
 
 {% block content %}
 <div class="container py-4">
-    <h2 class="mb-4"><i class="fas fa-shopping-cart"></i> Giỏ hàng của bạn</h2>
+    <h2 class="mb-4"><i class="fas fa-utensils"></i> Đặt món tại bàn</h2>
 
     {% if cart %}
         <div class="row">
@@ -93,7 +93,7 @@
                 <!-- Actions -->
                 <div class="d-flex justify-content-between">
                     <a href="{% url 'restaurant:menu_list' %}" class="btn btn-outline-primary">
-                        <i class="fas fa-arrow-left"></i> Tiếp tục mua sắm
+                        <i class="fas fa-arrow-left"></i> Tiếp tục chọn món
                     </a>
                 </div>
             </div>
@@ -102,67 +102,39 @@
             <div class="col-lg-4">
                 <div class="card shadow-sm sticky-top" style="top: 20px;">
                     <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0"><i class="fas fa-receipt"></i> Tóm tắt đơn hàng</h5>
+                        <h5 class="mb-0"><i class="fas fa-receipt"></i> Tóm tắt order</h5>
                     </div>
                     <div class="card-body">
                         <div class="d-flex justify-content-between mb-3">
                             <span>Tạm tính:</span>
                             <span class="fw-bold">{{ cart.get_total_price|floatformat:0 }}đ</span>
                         </div>
-                        
-                        <div class="d-flex justify-content-between mb-3">
-                            <span>Phí vận chuyển:</span>
-                            <span class="text-success">
-                                {% if cart.get_total_price >= 200000 %}
-                                    Miễn phí
-                                {% else %}
-                                    30.000đ
-                                {% endif %}
-                            </span>
-                        </div>
-                        
+
                         <hr>
-                        
+
                         <div class="d-flex justify-content-between mb-4">
                             <span class="h5 mb-0">Tổng cộng:</span>
                             <span class="h4 mb-0 text-primary fw-bold">
-                                {% if cart.get_total_price >= 200000 %}
-                                    {{ cart.get_total_price|floatformat:0 }}đ
-                                {% else %}
-                                    {{ cart.get_total_price|add:30000|floatformat:0 }}đ
-                                {% endif %}
+                                {{ cart.get_total_price|floatformat:0 }}đ
                             </span>
                         </div>
-                        
+
                         <div class="d-grid gap-2">
                             {% if user.is_authenticated %}
-                                <a href="{% url 'orders:checkout' %}" class="btn btn-primary btn-lg">
-                                    <i class="fas fa-check-circle"></i> Thanh toán
+                                <a href="{% url 'restaurant:cart_submit' %}" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-check-circle"></i> Gửi order cho nhà bếp
                                 </a>
                             {% else %}
                                 <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="btn btn-primary btn-lg">
-                                    <i class="fas fa-sign-in-alt"></i> Đăng nhập để đặt hàng
+                                    <i class="fas fa-sign-in-alt"></i> Đăng nhập để đặt món
                                 </a>
                             {% endif %}
                         </div>
-                        
+
                         <div class="text-center mt-3">
                             <small class="text-muted">
-                                <i class="fas fa-shield-alt"></i> Thanh toán an toàn & bảo mật
+                                <i class="fas fa-info-circle"></i> Nhân viên sẽ xác nhận order của bạn
                             </small>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Coupon Code -->
-                <div class="card shadow-sm mt-3">
-                    <div class="card-body">
-                        <h6 class="card-title"><i class="fas fa-tag"></i> Mã giảm giá</h6>
-                        <div class="input-group">
-                            <input type="text" class="form-control" placeholder="Nhập mã giảm giá">
-                            <button class="btn btn-outline-primary" type="button">
-                                Áp dụng
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -171,11 +143,11 @@
                 <div class="card shadow-sm mt-3">
                     <div class="card-body text-center">
                         <i class="fas fa-info-circle fa-2x text-primary mb-3"></i>
-                        <h6>Chính sách đặt hàng</h6>
+                        <h6>Thông tin đặt món</h6>
                         <ul class="text-start small text-muted mb-0">
-                            <li>Miễn phí vận chuyển cho đơn hàng trên 200.000đ</li>
-                            <li>Đổi trả trong vòng 24 giờ</li>
-                            <li>Thanh toán khi nhận hàng</li>
+                            <li>Order sẽ được gửi trực tiếp đến nhà bếp</li>
+                            <li>Nhân viên sẽ xác nhận khi nhận order</li>
+                            <li>Thanh toán tại quầy khi dùng xong</li>
                         </ul>
                     </div>
                 </div>
@@ -185,9 +157,9 @@
     {% else %}
         <!-- Empty Cart -->
         <div class="text-center py-5">
-            <i class="fas fa-shopping-cart fa-5x text-muted mb-4"></i>
-            <h3>Giỏ hàng trống</h3>
-            <p class="text-muted mb-4">Bạn chưa có món ăn nào trong giỏ hàng</p>
+            <i class="fas fa-utensils fa-5x text-muted mb-4"></i>
+            <h3>Chưa chọn món nào</h3>
+            <p class="text-muted mb-4">Hãy khám phá thực đơn và chọn món yêu thích</p>
             <a href="{% url 'restaurant:menu_list' %}" class="btn btn-primary btn-lg">
                 <i class="fas fa-utensils"></i> Khám phá thực đơn
             </a>

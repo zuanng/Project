@@ -95,14 +95,14 @@
             </div>
         </div>
 
-        <!-- Revenue by Payment Method -->
+        <!-- Revenue by Table Location -->
         <div class="col-lg-6 mb-4">
             <div class="card">
                 <div class="card-header bg-light">
-                    <h5 class="mb-0"><i class="fas fa-credit-card"></i> Doanh thu theo hình thức thanh toán</h5>
+                    <h5 class="mb-0"><i class="fas fa-map-marker-alt"></i> Doanh thu theo vị trí bàn</h5>
                 </div>
                 <div class="card-body">
-                    <canvas id="paymentChart" height="300"></canvas>
+                    <canvas id="locationChart" height="300"></canvas>
                 </div>
             </div>
         </div>
@@ -121,7 +121,7 @@
                             <th>#</th>
                             <th>Khách hàng</th>
                             <th>Email</th>
-                            <th>Số đơn hàng</th>
+                            <th>Số order</th>
                             <th>Tổng chi tiêu</th>
                         </tr>
                     </thead>
@@ -146,7 +146,6 @@
     </div>
 </div>
 
-<!-- Store data in JSON script tags to avoid mixing Django template tags with JavaScript -->
 <script id="revenue-data" type="application/json">
 {{ revenue_data|safe }}
 </script>
@@ -162,11 +161,11 @@
 ]
 </script>
 
-<script id="payment-data" type="application/json">
+<script id="location-data" type="application/json">
 [
-    {% for item in revenue_by_payment %}
+    {% for item in revenue_by_location %}
         {
-            "label": "{{ item.get_payment_method_display|escapejs }}",
+            "label": "{{ item.table__location|escapejs }}",
             "value": {{ item.revenue|floatformat:0 }}
         }{% if not forloop.last %},{% endif %}
     {% endfor %}
@@ -175,16 +174,14 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-    // Get data from JSON script tags
     const revenueData = JSON.parse(document.getElementById('revenue-data').textContent);
     const categoryData = JSON.parse(document.getElementById('category-data').textContent);
-    const paymentData = JSON.parse(document.getElementById('payment-data').textContent);
+    const locationData = JSON.parse(document.getElementById('location-data').textContent);
 
-    // Initialize revenue chart
+    // Revenue chart
     if (revenueData && Array.isArray(revenueData) && revenueData.length > 0) {
         const revenueLabels = revenueData.map(item => {
             if (item.period && typeof item.period === 'string') {
-                // Parse date string in YYYY-MM-DD format
                 const dateParts = item.period.split('-');
                 return `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
             } else {
@@ -210,7 +207,7 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { 
+                    legend: {
                         display: true,
                         position: 'top'
                     }
@@ -228,15 +225,14 @@
             }
         });
     } else {
-        // Show message when no revenue data
         const chartContainer = document.getElementById('revenueChart');
         if (chartContainer) {
-            chartContainer.parentNode.innerHTML = 
-                '<div class="text-center py-5"><p class="text-muted">Chưa có dữ liệu doanh thu trong khoảng thời gian này</p></div>';
+            chartContainer.parentNode.innerHTML =
+                '<div class="text-center py-5"><p class="text-muted">Chưa có dữ liệu doanh thu</p></div>';
         }
     }
 
-    // Initialize category chart if there's data
+    // Category chart
     if (categoryData && Array.isArray(categoryData) && categoryData.length > 0) {
         const categoryLabels = categoryData.map(item => item.label);
         const categoryValues = categoryData.map(item => item.value);
@@ -254,8 +250,6 @@
                         'rgb(75, 192, 192)',
                         'rgb(153, 102, 255)',
                         'rgb(255, 159, 64)',
-                        'rgb(199, 199, 199)',
-                        'rgb(83, 102, 147)'
                     ]
                 }]
             },
@@ -267,22 +261,22 @@
             }
         });
     } else {
-        document.getElementById('categoryChart').parentNode.innerHTML = 
-            '<div class="text-center py-5"><p class="text-muted">Chưa có dữ liệu doanh thu theo danh mục</p></div>';
+        document.getElementById('categoryChart').parentNode.innerHTML =
+            '<div class="text-center py-5"><p class="text-muted">Chưa có dữ liệu</p></div>';
     }
 
-    // Initialize payment chart if there's data
-    if (paymentData && Array.isArray(paymentData) && paymentData.length > 0) {
-        const paymentLabels = paymentData.map(item => item.label);
-        const paymentValues = paymentData.map(item => item.value);
+    // Location chart
+    if (locationData && Array.isArray(locationData) && locationData.length > 0) {
+        const locationLabels = locationData.map(item => item.label);
+        const locationValues = locationData.map(item => item.value);
 
-        new Chart(document.getElementById('paymentChart'), {
+        new Chart(document.getElementById('locationChart'), {
             type: 'bar',
             data: {
-                labels: paymentLabels,
+                labels: locationLabels,
                 datasets: [{
                     label: 'Doanh thu (đ)',
-                    data: paymentValues,
+                    data: locationValues,
                     backgroundColor: 'rgba(255, 107, 53, 0.7)'
                 }]
             },
@@ -301,8 +295,8 @@
             }
         });
     } else {
-        document.getElementById('paymentChart').parentNode.innerHTML = 
-            '<div class="text-center py-5"><p class="text-muted">Chưa có dữ liệu doanh thu theo hình thức thanh toán</p></div>';
+        document.getElementById('locationChart').parentNode.innerHTML =
+            '<div class="text-center py-5"><p class="text-muted">Chưa có dữ liệu</p></div>';
     }
 </script>
 {% endblock %}

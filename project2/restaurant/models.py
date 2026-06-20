@@ -1,6 +1,8 @@
 from django.db import models
 from django.utils.text import slugify
 from django.urls import reverse
+from django.core.validators import MinValueValidator
+from decimal import Decimal
 from accounts.models import User
 
 
@@ -162,3 +164,128 @@ class Review(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.menu_item.name} ({self.rating}★)"
+
+
+class TableOrder(models.Model):
+    """Order tại bàn — khách đặm món tại nhà hàng"""
+
+    STATUS_CHOICES = (
+        ("pending", "Chờ xác nhận"),
+        ("confirmed", "Đã xác nhận"),
+        ("preparing", "Đang pha chế"),
+        ("serving", "Đang phục vụ"),
+        ("completed", "Hoàn thành"),
+        ("cancelled", "Đã hủy"),
+    )
+
+    PAYMENT_STATUS_CHOICES = (
+        ("pending", "Chờ thanh toán"),
+        ("paid", "Đã thanh toán"),
+    )
+
+    order_number = models.CharField(max_length=20, unique=True, editable=False)
+    table = models.ForeignKey(
+        "reservations.Table",
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="orders",
+        verbose_name="Bàn",
+    )
+    customer = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="table_orders",
+        verbose_name="Khách hàng",
+    )
+    server = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="served_orders",
+        verbose_name="Nhân viên phục vụ",
+    )
+
+    status = models.CharField(
+        max_length=20, choices=STATUS_CHOICES, default="pending"
+    )
+    payment_status = models.CharField(
+        max_length=20, choices=PAYMENT_STATUS_CHOICES, default="pending"
+    )
+
+    subtotal = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0, verbose_name="Tạm tính"
+    )
+    discount = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0, verbose_name="Giảm giá"
+    )
+    total_amount = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0, verbose_name="Tổng tiền"
+    )
+
+    note = models.TextField(blank=True, verbose_name="Ghi chú")
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    confirmed_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Order tại bàn"
+        verbose_name_plural = "Order tại bàn"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Order #{self.order_number} - Bàn {self.table}"
+
+    def save(self, *args, **kwargs):
+        if not self.order_number:
+            import time
+            self.order_number = f"TB{int(time.time())}"
+        super().save(*args, **kwargs)
+
+    def calculate_total(self):
+        self.subtotal = sum(
+            item.get_total_price() for item in self.items.all()
+        )
+        self.total_amount = self.subtotal - self.discount
+        self.save()
+
+    def get_status_display_class(self):
+        status_classes = {
+            "pending": "warning",
+            "confirmed": "info",
+            "preparing": "primary",
+            "serving": "info",
+            "completed": "success",
+            "cancelled": "danger",
+        }
+        return status_classes.get(self.status, "secondary")
+
+
+class OrderItem(models.Model):
+    """Chi tiết order tại bàn"""
+
+    order = models.ForeignKey(
+        TableOrder, on_delete=models.CASCADE, related_name="items"
+    )
+    menu_item = models.ForeignKey(MenuItem, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(
+        default=1, validators=[MinValueValidator(1)]
+    )
+    price = models.DecimalField(
+        max_digits=10, decimal_places=2, verbose_name="Đơn giá"
+    )
+    note = models.TextField(blank=True, verbose_name="Ghi chú món")
+
+    class Meta:
+        verbose_name = "Chi tiết order"
+        verbose_name_plural = "Chi tiết order"
+
+    def __str__(self):
+        return f"{self.quantity}x {self.menu_item.name}"
+
+    def get_total_price(self):
+        return self.price * self.quantity

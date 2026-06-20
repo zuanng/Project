@@ -5,13 +5,11 @@ from django.db.models.functions import TruncDate, TruncMonth
 from django.utils import timezone
 from django.http import JsonResponse
 from datetime import timedelta, datetime
-from decimal import Decimal
 
-from accounts.decorators import admin_required, staff_required
+from accounts.decorators import admin_required
 from accounts.models import User
-from orders.models import Order, OrderItem
+from restaurant.models import TableOrder, OrderItem, MenuItem, Review
 from reservations.models import Reservation, Table
-from restaurant.models import MenuItem, Category, Review
 
 
 @login_required
@@ -22,9 +20,9 @@ def admin_dashboard(request):
 
     # Stats tổng quan
     stats = {
-        "total_orders": Order.objects.count(),
-        "pending_orders": Order.objects.filter(status="pending").count(),
-        "total_revenue": Order.objects.filter(
+        "total_orders": TableOrder.objects.count(),
+        "pending_orders": TableOrder.objects.filter(status="pending").count(),
+        "total_revenue": TableOrder.objects.filter(
             status="completed", payment_status="paid"
         ).aggregate(total=Sum("total_amount"))["total"]
         or 0,
@@ -36,22 +34,16 @@ def admin_dashboard(request):
         "total_menu_items": MenuItem.objects.filter(is_available=True).count(),
     }
 
-    # Doanh thu hôm nay - fixed timezone handling
-    from django.utils import timezone as tz
-    from datetime import datetime, time
-    
-    today_start = tz.make_aware(datetime.combine(today, time.min))
-    today_end = tz.make_aware(datetime.combine(today, time.max))
-    
+    # Doanh thu hôm nay
     today_revenue = (
-        Order.objects.filter(
+        TableOrder.objects.filter(
             created_at__date=today, status="completed", payment_status="paid"
         ).aggregate(total=Sum("total_amount"))["total"]
         or 0
     )
 
-    # Đơn hàng hôm nay
-    today_orders = Order.objects.filter(created_at__date=today).count()
+    # Order hôm nay
+    today_orders = TableOrder.objects.filter(created_at__date=today).count()
 
     # Top món ăn bán chạy
     top_items = (
@@ -61,10 +53,10 @@ def admin_dashboard(request):
         .order_by("-total_quantity")[:5]
     )
 
-    # Đơn hàng gần đây
-    recent_orders = Order.objects.select_related("customer").order_by(
-        "-created_at"
-    )[:10]
+    # Order gần đây
+    recent_orders = TableOrder.objects.select_related(
+        "table", "customer", "server"
+    ).order_by("-created_at")[:10]
 
     # Đặt bàn gần đây
     recent_reservations = Reservation.objects.select_related(
@@ -92,13 +84,16 @@ def admin_dashboard(request):
 @login_required
 @admin_required
 def orders_management(request):
-    """Quản lý đơn hàng"""
+    """Quản lý order tại bàn"""
     status_filter = request.GET.get("status", "")
     payment_filter = request.GET.get("payment", "")
     date_from = request.GET.get("date_from", "")
     date_to = request.GET.get("date_to", "")
+    table_filter = request.GET.get("table", "")
 
-    orders = Order.objects.select_related("customer").prefetch_related("items")
+    orders = TableOrder.objects.select_related(
+        "table", "customer", "server"
+    ).prefetch_related("items")
 
     # Filters
     if status_filter:
@@ -113,6 +108,9 @@ def orders_management(request):
     if date_to:
         orders = orders.filter(created_at__date__lte=date_to)
 
+    if table_filter:
+        orders = orders.filter(table__number__icontains=table_filter)
+
     orders = orders.order_by("-created_at")
 
     # Statistics
@@ -121,7 +119,7 @@ def orders_management(request):
         "pending": orders.filter(status="pending").count(),
         "confirmed": orders.filter(status="confirmed").count(),
         "preparing": orders.filter(status="preparing").count(),
-        "delivering": orders.filter(status="delivering").count(),
+        "serving": orders.filter(status="serving").count(),
         "completed": orders.filter(status="completed").count(),
         "cancelled": orders.filter(status="cancelled").count(),
         "total_revenue": orders.filter(
@@ -130,13 +128,18 @@ def orders_management(request):
         or 0,
     }
 
+    # Danh sách bàn cho filter
+    tables = Table.objects.filter(is_active=True)
+
     context = {
-        "orders": orders[:50],  # Limit 50 orders
+        "orders": orders[:50],
         "stats": stats,
+        "tables": tables,
         "status_filter": status_filter,
         "payment_filter": payment_filter,
         "date_from": date_from,
         "date_to": date_to,
+        "table_filter": table_filter,
     }
 
     return render(request, "dashboard/orders_management.html", context)
@@ -151,7 +154,6 @@ def reservations_management(request):
 
     reservations = Reservation.objects.select_related("customer", "table")
 
-    # Filters
     if status_filter:
         reservations = reservations.filter(status=status_filter)
 
@@ -160,7 +162,6 @@ def reservations_management(request):
 
     reservations = reservations.order_by("-date", "-time")
 
-    # Statistics
     stats = {
         "total": reservations.count(),
         "pending": reservations.filter(status="pending").count(),
@@ -169,7 +170,6 @@ def reservations_management(request):
         "cancelled": reservations.filter(status="cancelled").count(),
     }
 
-    # Tables status
     tables = Table.objects.all()
 
     context = {
@@ -187,9 +187,8 @@ def reservations_management(request):
 @admin_required
 def revenue_report(request):
     """Báo cáo doanh thu"""
-    period = request.GET.get("period", "week")  # day, week, month, year
+    period = request.GET.get("period", "week")
 
-    # Calculate date range
     today = timezone.now().date()
 
     if period == "day":
@@ -205,14 +204,12 @@ def revenue_report(request):
         start_date = today - timedelta(days=365 * 3)
         date_field = TruncMonth("created_at")
 
-    # Revenue data - use timezone-aware datetime filtering for better accuracy
-    from django.utils import timezone as tz
-    from datetime import datetime, time
-    
-    start_datetime = tz.make_aware(datetime.combine(start_date, time.min))
-    
+    start_datetime = timezone.make_aware(
+        datetime.combine(start_date, datetime.min.time())
+    )
+
     revenue_data = (
-        Order.objects.filter(
+        TableOrder.objects.filter(
             created_at__gte=start_datetime,
             status="completed",
             payment_status="paid",
@@ -228,7 +225,7 @@ def revenue_report(request):
     last_month = (current_month - timedelta(days=1)).replace(day=1)
 
     current_month_revenue = (
-        Order.objects.filter(
+        TableOrder.objects.filter(
             created_at__date__gte=current_month,
             status="completed",
             payment_status="paid",
@@ -237,7 +234,7 @@ def revenue_report(request):
     )
 
     last_month_revenue = (
-        Order.objects.filter(
+        TableOrder.objects.filter(
             created_at__date__gte=last_month,
             created_at__date__lt=current_month,
             status="completed",
@@ -258,27 +255,29 @@ def revenue_report(request):
         .order_by("-revenue")
     )
 
-    # Revenue by payment method
-    revenue_by_payment = (
-        Order.objects.filter(
+    # Revenue by table location
+    revenue_by_location = (
+        TableOrder.objects.filter(
             status="completed",
             payment_status="paid",
             created_at__date__gte=start_date,
         )
-        .values("payment_method")
+        .values("table__location")
         .annotate(revenue=Sum("total_amount"), count=Count("id"))
         .order_by("-revenue")
     )
 
     # Top customers
     top_customers = (
-        Order.objects.filter(
+        TableOrder.objects.filter(
             status="completed",
             payment_status="paid",
             created_at__date__gte=start_date,
         )
         .values(
-            "customer__username", "customer__first_name", "customer__last_name"
+            "customer__username",
+            "customer__first_name",
+            "customer__last_name",
         )
         .annotate(total_spent=Sum("total_amount"), orders_count=Count("id"))
         .order_by("-total_spent")[:10]
@@ -290,7 +289,7 @@ def revenue_report(request):
         "current_month_revenue": current_month_revenue,
         "last_month_revenue": last_month_revenue,
         "revenue_by_category": list(revenue_by_category),
-        "revenue_by_payment": list(revenue_by_payment),
+        "revenue_by_location": list(revenue_by_location),
         "top_customers": list(top_customers),
     }
 
@@ -337,7 +336,7 @@ def menu_statistics(request):
         .order_by("-avg_rating")[:10]
     )
 
-    # Low stock items (items not ordered recently)
+    # Low performing items
     thirty_days_ago = timezone.now() - timedelta(days=30)
     low_performing = (
         MenuItem.objects.annotate(
@@ -365,16 +364,13 @@ def menu_statistics(request):
 def customer_statistics(request):
     """Thống kê khách hàng"""
 
-    # Total customers
     total_customers = User.objects.filter(role="customer").count()
 
-    # New customers this month
     current_month = timezone.now().replace(day=1)
     new_customers_this_month = User.objects.filter(
         role="customer", date_joined__gte=current_month
     ).count()
 
-    # Customer registration trend
     six_months_ago = timezone.now() - timedelta(days=180)
     registration_trend = (
         User.objects.filter(role="customer", date_joined__gte=six_months_ago)
@@ -384,9 +380,8 @@ def customer_statistics(request):
         .order_by("month")
     )
 
-    # Top spending customers
     top_spenders = (
-        Order.objects.filter(status="completed", payment_status="paid")
+        TableOrder.objects.filter(status="completed", payment_status="paid")
         .values(
             "customer__id",
             "customer__username",
@@ -398,10 +393,9 @@ def customer_statistics(request):
         .order_by("-total_spent")[:20]
     )
 
-    # Active vs Inactive customers
     active_threshold = timezone.now() - timedelta(days=30)
     active_customers = (
-        Order.objects.filter(created_at__gte=active_threshold)
+        TableOrder.objects.filter(created_at__gte=active_threshold)
         .values("customer")
         .distinct()
         .count()
@@ -435,14 +429,12 @@ def api_revenue_chart(request):
     else:
         start_date = today - timedelta(days=365)
 
-    # Fixed version with timezone-aware datetime filtering
-    from django.utils import timezone as tz
-    from datetime import datetime, time
-    
-    start_datetime = tz.make_aware(datetime.combine(start_date, time.min))
-    
+    start_datetime = timezone.make_aware(
+        datetime.combine(start_date, datetime.min.time())
+    )
+
     revenue_data = (
-        Order.objects.filter(
+        TableOrder.objects.filter(
             created_at__gte=start_datetime,
             status="completed",
             payment_status="paid",
@@ -456,10 +448,17 @@ def api_revenue_chart(request):
     return JsonResponse(
         {
             "labels": [
-                item["date"].strftime("%d/%m") if item["date"] else "" for item in revenue_data
+                item["date"].strftime("%d/%m") if item["date"] else ""
+                for item in revenue_data
             ],
-            "revenue": [float(item["revenue"]) if item["revenue"] else 0 for item in revenue_data],
-            "orders": [item["orders"] if item["orders"] else 0 for item in revenue_data],
+            "revenue": [
+                float(item["revenue"]) if item["revenue"] else 0
+                for item in revenue_data
+            ],
+            "orders": [
+                item["orders"] if item["orders"] else 0
+                for item in revenue_data
+            ],
         }
     )
 
@@ -467,12 +466,12 @@ def api_revenue_chart(request):
 @login_required
 @admin_required
 def update_order_status(request, order_id):
-    """Cập nhật trạng thái đơn hàng"""
+    """Cập nhật trạng thái order tại bàn"""
     if request.method == "POST":
-        order = get_object_or_404(Order, id=order_id)
+        order = get_object_or_404(TableOrder, id=order_id)
         new_status = request.POST.get("status")
 
-        if new_status in dict(Order.STATUS_CHOICES):
+        if new_status in dict(TableOrder.STATUS_CHOICES):
             order.status = new_status
 
             if new_status == "confirmed":
@@ -492,27 +491,20 @@ def update_order_status(request, order_id):
 @login_required
 @admin_required
 def update_payment_status(request, order_id):
-    """Cập nhật trạng thái thanh toán đơn hàng"""
+    """Cập nhật trạng thái thanh toán"""
     if request.method == "POST":
-        order = get_object_or_404(Order, id=order_id)
+        order = get_object_or_404(TableOrder, id=order_id)
         new_payment_status = request.POST.get("payment_status")
 
-        if new_payment_status in dict(Order.PAYMENT_STATUS_CHOICES):
-            old_payment_status = order.payment_status
+        if new_payment_status in dict(TableOrder.PAYMENT_STATUS_CHOICES):
             order.payment_status = new_payment_status
-            
-            # Nếu thanh toán được xác nhận là đã thanh toán, cập nhật lại tổng doanh thu
-            if new_payment_status == "paid" and old_payment_status != "paid":
-                # Không cần làm gì đặc biệt ở đây vì doanh thu sẽ được tính khi truy vấn
-                pass
-            elif new_payment_status == "pending" and old_payment_status == "paid":
-                # Tương tự, không cần làm gì đặc biệt
-                pass
-            
             order.save()
 
             return JsonResponse(
-                {"success": True, "message": "Cập nhật trạng thái thanh toán thành công"}
+                {
+                    "success": True,
+                    "message": "Cập nhật trạng thái thanh toán thành công",
+                }
             )
 
     return JsonResponse({"success": False, "message": "Invalid request"})

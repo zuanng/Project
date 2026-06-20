@@ -10,7 +10,7 @@
         padding: 3rem 0;
         margin-bottom: 2rem;
     }
-    
+
     .profile-avatar {
         width: 150px;
         height: 150px;
@@ -19,19 +19,19 @@
         box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
         object-fit: cover;
     }
-    
+
     .profile-card {
         border: none;
         box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
         border-radius: 0.5rem;
         transition: transform 0.2s;
     }
-    
+
     .profile-card:hover {
         transform: translateY(-5px);
         box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
     }
-    
+
     .info-label {
         color: #6c757d;
         font-size: 0.875rem;
@@ -39,7 +39,7 @@
         text-transform: uppercase;
         margin-bottom: 0.25rem;
     }
-    
+
     .info-value {
         font-size: 1.1rem;
         font-weight: 500;
@@ -99,9 +99,6 @@
                     <i class="fas fa-user-circle"></i> Thông tin cá nhân
                 </a>
                 {% if user.is_customer %}
-                    <a href="{% url 'orders:order_list' %}" class="list-group-item list-group-item-action">
-                        <i class="fas fa-shopping-bag"></i> Đơn hàng của tôi
-                    </a>
                     <a href="{% url 'reservations:reservation_list' %}" class="list-group-item list-group-item-action">
                         <i class="fas fa-calendar-check"></i> Đặt bàn của tôi
                     </a>
@@ -125,16 +122,7 @@
         <div class="col-lg-9">
             {% if user.is_customer %}
                 <div class="row mb-4">
-                    <div class="col-md-4 mb-3">
-                        <div class="card profile-card">
-                            <div class="card-body text-center">
-                                <i class="fas fa-shopping-bag fa-3x text-primary mb-3"></i>
-                                <h3>0</h3>
-                                <p class="text-muted mb-0">Đơn hàng</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 mb-3">
+                    <div class="col-md-6 mb-3">
                         <div class="card profile-card">
                             <div class="card-body text-center">
                                 <i class="fas fa-calendar-check fa-3x text-success mb-3"></i>
@@ -143,7 +131,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4 mb-3">
+                    <div class="col-md-6 mb-3">
                         <div class="card profile-card">
                             <div class="card-body text-center">
                                 <i class="fas fa-heart fa-3x text-danger mb-3"></i>
@@ -193,30 +181,6 @@
                     </div>
                 </div>
             </div>
-
-            {% if user.is_customer %}
-                <div class="card profile-card">
-                    <div class="card-header bg-light">
-                        <h5 class="mb-0"><i class="fas fa-map-marker-alt"></i> Địa chỉ giao hàng</h5>
-                    </div>
-                    <div class="card-body p-4">
-                        <div class="row">
-                            <div class="col-12 mb-3">
-                                <div class="info-label">Địa chỉ chi tiết</div>
-                                <div class="info-value">{{ profile.address|default:"Chưa cập nhật" }}</div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <div class="info-label">Thành phố</div>
-                                <div class="info-value">{{ profile.city|default:"Chưa cập nhật" }}</div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <div class="info-label">Mã bưu điện</div>
-                                <div class="info-value">{{ profile.postal_code|default:"Chưa cập nhật" }}</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            {% endif %}
         </div>
     </div>
 </div>

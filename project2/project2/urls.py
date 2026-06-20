@@ -7,9 +7,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("restaurant.urls")),  # Trang chủ
     path("accounts/", include("accounts.urls")),
-    path("orders/", include("orders.urls")),
     path("reservations/", include("reservations.urls")),
-    path("blog/", include("blog.urls")),
     path("dashboard/", include("dashboard.urls")),
 ]
 

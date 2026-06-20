@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q, Avg, Count
 from django.core.paginator import Paginator
 from django.views.decorators.http import require_POST
-from .models import MenuItem, Category, Chef, Review
+from .models import MenuItem, Category, Chef, Review, TableOrder, OrderItem
 from .cart import Cart
 from .forms import CartAddItemForm, MenuItemSearchForm, ReviewForm
 
@@ -209,3 +209,39 @@ def chefs_list(request):
         "chefs": chefs,
     }
     return render(request, "restaurant/chefs_list.html", context)
+
+
+@login_required
+def cart_submit(request):
+    """Gửi order tại bàn — chuyển giỏ hàng thành TableOrder"""
+    cart = Cart(request)
+
+    if len(cart) == 0:
+        messages.warning(request, "Giỏ hàng trống!")
+        return redirect("restaurant:menu_list")
+
+    # Tạo TableOrder từ giỏ hàng
+    order = TableOrder.objects.create(
+        customer=request.user if request.user.is_authenticated else None,
+        subtotal=cart.get_total_price(),
+        total_amount=cart.get_total_price(),
+    )
+
+    # Tạo OrderItem từ cart
+    for item in cart:
+        OrderItem.objects.create(
+            order=order,
+            menu_item=item["menu_item"],
+            quantity=item["quantity"],
+            price=item["price"],
+        )
+
+    # Xóa giỏ hàng
+    cart.clear()
+
+    messages.success(
+        request,
+        f"Đã gửi order #{order.order_number} cho nhà bếp! "
+        f"Nhân viên sẽ sớm xác nhận.",
+    )
+    return redirect("restaurant:cart_detail")

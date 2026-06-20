@@ -13,7 +13,7 @@ urlpatterns = [
     path(
         "category/<slug:slug>/", views.category_detail, name="category_detail"
     ),
-    # Cart
+    # Cart / Order tại bàn
     path("cart/", views.cart_detail, name="cart_detail"),
     path("cart/add/<int:menu_item_id>/", views.cart_add, name="cart_add"),
     path(
@@ -21,6 +21,7 @@ urlpatterns = [
         views.cart_remove,
         name="cart_remove",
     ),
+    path("cart/submit/", views.cart_submit, name="cart_submit"),
     # Chefs
     path("chefs/", views.chefs_list, name="chefs_list"),
 ]

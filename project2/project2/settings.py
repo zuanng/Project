@@ -42,9 +42,7 @@ INSTALLED_APPS = [
     "project2",
     "accounts",
     "restaurant",
-    "orders",
     "reservations",
-    "blog",
     "dashboard",
 ]
 
@@ -164,3 +162,9 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+ALLOWED_HOSTS = ['*']
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.ngrok.io'
+]
