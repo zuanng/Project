@@ -65,6 +65,12 @@ class MenuItem(models.Model):
         default=15, verbose_name="Thời gian chuẩn bị (phút)"
     )
     views_count = models.IntegerField(default=0, verbose_name="Lượt xem")
+    tags = models.CharField(
+        max_length=300,
+        blank=True,
+        verbose_name="Tags",
+        help_text="Phân cách bằng dấu phẩy. VD: nướng,hấp,hải sản,bò",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
