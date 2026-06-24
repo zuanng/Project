@@ -1,49 +1,51 @@
-"""High-level recommendation API for views and templates.
+"""Recommendation engine — single entry point for views and templates.
 
-Thin orchestration layer over strategies + scorer. The engine chooses
-which strategies to run, with what weights, and handles the trending
-fallback when there is not enough signal.
+Usage in a view:
+    from restaurant.recommender.engine import get_recommendations
+    recommendations = get_recommendations(request.user, n=6)
 """
 
-from restaurant.recommender.strategies import (
-    ContentBasedStrategy,
-    CollaborativeStrategy,
-    TrendingStrategy,
-)
-from restaurant.recommender.scorer import merge
+from .strategies import ContentBasedStrategy, CollaborativeStrategy, TrendingStrategy
+from .scorer import merge
 
 
 def get_recommendations(user, n: int = 6) -> list:
-    """Return recommendations for a user.
+    """Get personalized recommendations for a user.
 
-    - Anonymous users or users with no order/review history get [].
-    - Authenticated users with history get a ordered list of MenuItems.
+    Returns a list of MenuItem objects (empty if not enough data / all popped).
+    Caller should check len() and fall back to trending if < 3.
     """
     if not user or not user.is_authenticated:
         return []
 
-    content = ContentBasedStrategy().score(user)
-    collaborative = CollaborativeStrategy().score(user)
-
-    # No signal — return empty (no history to base recommendations on)
-    if not content and not collaborative:
-        return []
-
-    merged = merge(
-        user,
-        strategies_scores=[content, collaborative],
-        weights=[0.6, 0.4],
-        n=n,
+    # Check if user has any order or review history
+    from restaurant.models import Review, OrderItem
+    has_history = (
+        Review.objects.filter(user=user).exists()
+        or OrderItem.objects.filter(order__customer=user).exists()
     )
-
-    # scorer returns empty list when < 3 items remain
-    if not merged:
+    if not has_history:
         return []
 
-    return [item for item, _score in merged]
+    # Run strategies
+    content_scores = ContentBasedStrategy().score(user)
+    collab_scores = CollaborativeStrategy().score(user)
+
+    # If collaborative returned nothing (no similar users), use content-only
+    if not collab_scores and content_scores:
+        strategies = [content_scores]
+        weights = [1.0]
+    elif not content_scores:
+        strategies = [collab_scores]
+        weights = [1.0]
+    else:
+        strategies = [content_scores, collab_scores]
+        weights = [0.6, 0.4]
+
+    results = merge(user, strategies, weights, n=n)
+    return [item for item, _ in results]
 
 
 def get_trending(n: int = 6) -> list:
-    """Return top-N trending items (popularity fallback)."""
-    strategy = TrendingStrategy()
-    return strategy.score(n=n)
+    """Get trending items — used for anonymous users or as fallback."""
+    return TrendingStrategy().score(n=n)
