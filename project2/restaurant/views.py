@@ -18,10 +18,25 @@ def home(request):
     categories = Category.objects.filter(is_active=True)[:6]
     chefs = Chef.objects.filter(is_active=True)[:4]
 
+    # Recommendations
+    from restaurant.recommender.engine import get_recommendations, get_trending
+
+    recommendations = []
+    trending_items = []
+    if request.user.is_authenticated:
+        recommendations = get_recommendations(request.user, n=6)
+        if len(recommendations) < 3:
+            recommendations = []
+            trending_items = get_trending(n=6)
+    else:
+        trending_items = get_trending(n=6)
+
     context = {
         "featured_items": featured_items,
         "categories": categories,
         "chefs": chefs,
+        "recommendations": recommendations,
+        "trending_items": trending_items,
     }
     return render(request, "restaurant/home.html", context)
 
