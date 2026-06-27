@@ -15,7 +15,7 @@
 ## 🏗️ Cấu trúc project
 
 ```
-Project II/
+Project/
 ├── CLAUDE.md
 ├── project2/                    # Django project root
 │   ├── manage.py
