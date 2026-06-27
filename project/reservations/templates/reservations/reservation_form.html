@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+
+{% block title %}Đặt Bàn — FourSeason{% endblock %}
+
+{% block content %}
+<!-- ============================================
+     RESERVATION PAGE
+     ============================================ -->
+<section class="reservation-section">
+    <div class="reservation-overlay"></div>
+    <div class="container-fluid px-4 py-5 position-relative" style="z-index: 2;">
+        <div class="row justify-content-center">
+            <div class="col-lg-7">
+                <!-- Header -->
+                <div class="text-center mb-5">
+                    <p class="font-accent text-gold mb-1" style="font-size: 1rem; letter-spacing: 0.1em;">✦ Đặt bàn trước ✦</p>
+                    <h2 class="fw-bold mb-2">Đặt Bàn</h2>
+                    <div class="gold-divider-center"></div>
+                    <p class="text-muted mb-0 mt-2">Đặt bàn trước để được phục vụ tốt nhất</p>
+                </div>
+
+                <!-- Form Card -->
+                <div class="glass-card p-4" style="border-radius: var(--radius-xl);">
+                    <form method="post">
+                        {% csrf_token %}
+                        {% if form.errors %}
+                            <div class="alert alert-danger">
+                                <h6><i class="fas fa-exclamation-triangle"></i> Có lỗi trong form:</h6>
+                                <ul class="mb-0 small">
+                                    {% for field in form %}
+                                        {% if field.errors %}
+                                            <li><strong>{{ field.label }}:</strong> {{ field.errors|striptags }}</li>
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% if form.non_field_errors %}
+                                        <li>{{ form.non_field_errors|striptags }}</li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        {% endif %}
+
+                        <!-- Customer Info -->
+                        <h6 class="fw-bold mb-3" style="font-family: var(--font-heading); color: var(--gold-primary); letter-spacing: 0.04em;">
+                            <i class="fas fa-user me-2"></i>Thông Tin Khách Hàng
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Họ và tên <span class="text-danger">*</span></label>
+                                {{ form.guest_name }}
+                                {% if form.guest_name.errors %}
+                                    <div class="text-danger small mt-1">{{ form.guest_name.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Số điện thoại <span class="text-danger">*</span></label>
+                                {{ form.guest_phone }}
+                                {% if form.guest_phone.errors %}
+                                    <div class="text-danger small mt-1">{{ form.guest_phone.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            {{ form.guest_email }}
+                        </div>
+
+                        <div class="gold-divider mb-3 mt-3" style="width: 100%; height: 1px;"></div>
+
+                        <!-- Reservation Info -->
+                        <h6 class="fw-bold mb-3" style="font-family: var(--font-heading); color: var(--gold-primary); letter-spacing: 0.04em;">
+                            <i class="fas fa-calendar me-2"></i>Thông Tin Đặt Bàn
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Ngày <span class="text-danger">*</span></label>
+                                {{ form.date }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Giờ <span class="text-danger">*</span></label>
+                                {{ form.time }}
+                                <small class="form-text" style="color: var(--text-muted);">Nhà hàng phục vụ: 10:00 - 22:00</small>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Số khách <span class="text-danger">*</span></label>
+                                {{ form.number_of_guests }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Dịp đặc biệt</label>
+                                {{ form.occasion }}
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label">Yêu cầu đặc biệt</label>
+                            {{ form.special_request }}
+                        </div>
+
+                        <!-- Notes -->
+                        <div class="alert alert-info py-3 mb-4">
+                            <h6 class="mb-2" style="color: var(--gold-light);"><i class="fas fa-info-circle"></i> Lưu ý:</h6>
+                            <ul class="mb-0 small" style="padding-left: 1.2rem;">
+                                <li>Đặt bàn trước ít nhất 2 giờ</li>
+                                <li>Giữ bàn trong 15 phút sau giờ đặt</li>
+                                <li>Nhóm trên 10 người gọi hotline: 0123 456 789</li>
+                            </ul>
+                        </div>
+
+                        <!-- Submit -->
+                        <div class="d-grid gap-2 d-md-flex">
+                            <a href="{% url 'restaurant:home' %}" class="btn btn-outline-light flex-grow-1">
+                                <i class="fas fa-times"></i> Hủy
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-lg flex-grow-1">
+                                <i class="fas fa-check"></i> Xác Nhận Đặt Bàn
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Feature Pills -->
+                <div class="row mt-4 g-3 text-center">
+                    <div class="col-md-4">
+                        <div class="glass-card p-3 hover-lift">
+                            <i class="fas fa-clock fa-2x text-gold mb-2"></i>
+                            <h6 style="font-family: var(--font-heading); color: var(--text-primary);">Tiết Kiệm Thời Gian</h6>
+                            <p class="small mb-0" style="color: var(--text-muted);">Không phải chờ đợi</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="glass-card p-3 hover-lift">
+                            <i class="fas fa-star fa-2x text-gold mb-2"></i>
+                            <h6 style="font-family: var(--font-heading); color: var(--text-primary);">Chỗ Ngồi Tốt Nhất</h6>
+                            <p class="small mb-0" style="color: var(--text-muted);">Ưu tiên vị trí yêu cầu</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="glass-card p-3 hover-lift">
+                            <i class="fas fa-gift fa-2x text-gold mb-2"></i>
+                            <h6 style="font-family: var(--font-heading); color: var(--text-primary);">Ưu Đãi Đặc Biệt</h6>
+                            <p class="small mb-0" style="color: var(--text-muted);">Giảm giá đặt bàn online</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .reservation-section {
+        position: relative;
+        min-height: 100vh;
+        background: url('https://images.unsplash.com/photo-1559339352-11d035aa65de?w=1920') center/cover no-repeat;
+    }
+
+    .reservation-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+            180deg,
+            rgba(10, 10, 10, 0.8) 0%,
+            rgba(10, 10, 10, 0.7) 50%,
+            rgba(10, 10, 10, 0.9) 100%
+        );
+        z-index: 1;
+    }
+</style>
+{% endblock %}

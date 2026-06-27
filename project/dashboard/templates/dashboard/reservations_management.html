@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+
+{% block title %}Quản Lý Đặt Bàn — FourSeason{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h2 class="fw-bold mb-0" style="font-family: var(--font-heading);">Quản Lý Đặt Bàn</h2>
+            <div class="gold-divider mt-2"></div>
+        </div>
+        <a href="{% url 'dashboard:admin_dashboard' %}" class="btn btn-outline-light">
+            <i class="fas fa-arrow-left"></i> Quay lại Dashboard
+        </a>
+    </div>
+
+    <!-- Statistics -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3 col-6">
+            <div class="glass-card p-3 text-center hover-lift">
+                <h3 class="fw-bold mb-0" style="color: var(--text-primary); font-family: var(--font-heading);">{{ stats.total }}</h3>
+                <small style="color: var(--text-muted);">Tổng đặt bàn</small>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="glass-card p-3 text-center hover-lift">
+                <h3 class="fw-bold mb-0" style="color: #ffc107; font-family: var(--font-heading);">{{ stats.pending }}</h3>
+                <small style="color: var(--text-muted);">Chờ xác nhận</small>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="glass-card p-3 text-center hover-lift">
+                <h3 class="fw-bold mb-0" style="color: #198754; font-family: var(--font-heading);">{{ stats.confirmed }}</h3>
+                <small style="color: var(--text-muted);">Đã xác nhận</small>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="glass-card p-3 text-center hover-lift">
+                <h3 class="fw-bold mb-0" style="color: #0dcaf0; font-family: var(--font-heading);">{{ stats.completed }}</h3>
+                <small style="color: var(--text-muted);">Hoàn thành</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Filters & Reservations List -->
+        <div class="col-lg-8">
+            <!-- Filters -->
+            <div class="glass-card p-3 mb-4">
+                <form method="get" class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label">Trạng thái</label>
+                        <select name="status" class="form-select">
+                            <option value="">Tất cả</option>
+                            <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Chờ xác nhận</option>
+                            <option value="confirmed" {% if status_filter == 'confirmed' %}selected{% endif %}>Đã xác nhận</option>
+                            <option value="checked_in" {% if status_filter == 'checked_in' %}selected{% endif %}>Đã check-in</option>
+                            <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Hoàn thành</option>
+                            <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Đã hủy</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Ngày đặt</label>
+                        <input type="date" name="date" class="form-control" value="{{ date_filter }}">
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-filter"></i> Lọc
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Reservations List -->
+            <div class="glass-card overflow-hidden">
+                <div class="card-header py-3" style="background: rgba(201,168,76,0.06); border-bottom: 1px solid var(--gold-border);">
+                    <h5 class="mb-0" style="font-family: var(--font-heading); color: var(--gold-primary);">Danh Sách Đặt Bàn</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for reservation in reservations %}
+                            <div class="list-group-item" style="background: transparent; border-color: var(--border-subtle);">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <strong class="me-2" style="color: var(--gold-primary);">#{{ reservation.reservation_number }}</strong>
+                                            <span class="badge" style="background: var(--bg-elevated); color: var(--text-secondary); border: 1px solid var(--border-default);">
+                                                {{ reservation.get_status_display }}
+                                            </span>
+                                        </div>
+                                        <div class="row g-2">
+                                            <div class="col-md-6">
+                                                <small style="color: var(--text-muted);">Khách hàng:</small>
+                                                <div><strong style="color: var(--text-primary);">{{ reservation.guest_name }}</strong></div>
+                                                <small style="color: var(--text-muted);"><i class="fas fa-phone"></i> {{ reservation.guest_phone }}</small>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <small style="color: var(--text-muted);">Thời gian:</small>
+                                                <div>
+                                                    <i class="fas fa-calendar" style="color: var(--gold-primary);"></i> {{ reservation.date|date:"d/m/Y" }}
+                                                    <i class="fas fa-clock ms-2" style="color: var(--gold-primary);"></i> {{ reservation.time|time:"H:i" }}
+                                                </div>
+                                                <small style="color: var(--text-muted);">
+                                                    <i class="fas fa-users"></i> {{ reservation.number_of_guests }} người
+                                                    {% if reservation.table %}
+                                                        | Bàn {{ reservation.table.number }}
+                                                    {% endif %}
+                                                </small>
+                                            </div>
+                                        </div>
+                                        {% if reservation.special_request %}
+                                            <div class="mt-2">
+                                                <small style="color: var(--text-muted);">Yêu cầu:</small>
+                                                <div class="small" style="color: var(--text-secondary);">{{ reservation.special_request }}</div>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="ms-3">
+                                        <select class="form-select form-select-sm mb-2"
+                                                onchange="updateReservationStatus({{ reservation.id }}, this.value)"
+                                                style="width: 140px;">
+                                            <option value="pending" {% if reservation.status == 'pending' %}selected{% endif %}>Chờ xác nhận</option>
+                                            <option value="confirmed" {% if reservation.status == 'confirmed' %}selected{% endif %}>Đã xác nhận</option>
+                                            <option value="checked_in" {% if reservation.status == 'checked_in' %}selected{% endif %}>Đã check-in</option>
+                                            <option value="completed" {% if reservation.status == 'completed' %}selected{% endif %}>Hoàn thành</option>
+                                            <option value="cancelled" {% if reservation.status == 'cancelled' %}selected{% endif %}>Đã hủy</option>
+                                        </select>
+                                        <a href="{% url 'reservations:reservation_detail' reservation.reservation_number %}"
+                                           class="btn btn-sm btn-outline-light w-100"
+                                           target="_blank">
+                                            <i class="fas fa-eye"></i> Chi tiết
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <div class="list-group-item text-center py-4" style="background: transparent; color: var(--text-muted);">
+                                Không có đặt bàn nào
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tables Status -->
+        <div class="col-lg-4">
+            <div class="glass-card overflow-hidden" style="position: sticky; top: 80px;">
+                <div class="card-header py-3" style="background: rgba(201,168,76,0.06); border-bottom: 1px solid var(--gold-border);">
+                    <h5 class="mb-0" style="font-family: var(--font-heading); color: var(--gold-primary);">
+                        <i class="fas fa-chair me-2"></i>Trạng Thái Bàn
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-2">
+                        {% for table in tables %}
+                            <div class="col-6">
+                                <div class="rounded p-3 text-center"
+                                     style="{% if table.status == 'available' %}background: rgba(25,135,84,0.1); border: 1px solid rgba(25,135,84,0.25);{% elif table.status == 'occupied' %}background: rgba(220,53,69,0.1); border: 1px solid rgba(220,53,69,0.25);{% elif table.status == 'reserved' %}background: rgba(201,168,76,0.1); border: 1px solid var(--gold-border);{% else %}background: var(--bg-tertiary); border: 1px solid var(--border-subtle);{% endif %} border-radius: var(--radius-md);">
+                                    <div class="h5 mb-0 fw-bold" style="font-family: var(--font-heading); color: var(--text-primary);">Bàn {{ table.number }}</div>
+                                    <small style="color: var(--text-muted);">{{ table.capacity }} người</small>
+                                    <div class="small mt-1" style="color: var(--text-secondary);">
+                                        {% if table.status == 'available' %}
+                                            <i class="fas fa-check-circle" style="color: #198754;"></i> Trống
+                                        {% elif table.status == 'occupied' %}
+                                            <i class="fas fa-users" style="color: #dc3545;"></i> Đang dùng
+                                        {% elif table.status == 'reserved' %}
+                                            <i class="fas fa-clock" style="color: var(--gold-primary);"></i> Đã đặt
+                                        {% else %}
+                                            <i class="fas fa-tools"></i> Bảo trì
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function updateReservationStatus(reservationId, newStatus) {
+        if (!confirm('Xác nhận thay đổi trạng thái đặt bàn?')) return;
+        fetch(`/dashboard/api/reservation/${reservationId}/status/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': '{{ csrf_token }}' },
+            body: `status=${newStatus}`
+        }).then(r => r.json()).then(d => {
+            if (d.success) { alert('Cập nhật thành công!'); location.reload(); }
+            else alert('Có lỗi xảy ra!');
+        }).catch(() => alert('Có lỗi xảy ra!'));
+    }
+</script>
+{% endblock %}

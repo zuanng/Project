@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}Thống Kê Món Ăn — FourSeason{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+    <!-- Header -->
+    <div class="mb-4">
+        <h2 class="fw-bold mb-0" style="font-family: var(--font-heading);">Thống Kê Món Ăn</h2>
+        <div class="gold-divider mt-2"></div>
+    </div>
+
+    <!-- Top Selling -->
+    <div class="glass-card overflow-hidden mb-4">
+        <div class="card-header py-3" style="background: rgba(201,168,76,0.06); border-bottom: 1px solid var(--gold-border);">
+            <h5 class="mb-0" style="font-family: var(--font-heading); color: var(--gold-primary);">
+                <i class="fas fa-fire me-2"></i>Top 20 Món Bán Chạy Nhất
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table mb-0" style="font-size: 0.875rem;">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Tên món</th>
+                            <th>Danh mục</th>
+                            <th>Giá</th>
+                            <th>Đã bán</th>
+                            <th>Doanh thu</th>
+                            <th>Số đơn</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in top_selling %}
+                            <tr>
+                                <td><strong style="color: var(--gold-primary);">{{ forloop.counter }}</strong></td>
+                                <td style="color: var(--text-primary);">{{ item.menu_item__name }}</td>
+                                <td><span class="badge" style="background: var(--gold-primary); color: var(--text-inverse);">{{ item.menu_item__category__name }}</span></td>
+                                <td style="color: var(--text-secondary);">{{ item.menu_item__price|floatformat:0 }}đ</td>
+                                <td><strong style="color: var(--text-primary);">{{ item.total_quantity }}</strong></td>
+                                <td style="color: #198754;"><strong>{{ item.total_revenue|floatformat:0 }}đ</strong></td>
+                                <td style="color: var(--text-secondary);">{{ item.orders_count }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Items by Category -->
+        <div class="col-lg-6 mb-4">
+            <div class="glass-card overflow-hidden">
+                <div class="card-header py-3" style="background: rgba(201,168,76,0.06); border-bottom: 1px solid var(--gold-border);">
+                    <h5 class="mb-0" style="font-family: var(--font-heading); color: var(--gold-primary);">
+                        <i class="fas fa-layer-group me-2"></i>Món Theo Danh Mục
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    {% for item in items_by_category %}
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <strong style="color: var(--text-primary);">{{ item.category__name }}</strong>
+                                <small class="d-block" style="color: var(--text-muted);">
+                                    {{ item.available }} có sẵn / {{ item.unavailable }} hết
+                                </small>
+                            </div>
+                            <h4 class="mb-0" style="color: var(--gold-primary); font-family: var(--font-heading);">{{ item.count }}</h4>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Average Ratings -->
+        <div class="col-lg-6 mb-4">
+            <div class="glass-card overflow-hidden">
+                <div class="card-header py-3" style="background: rgba(201,168,76,0.06); border-bottom: 1px solid var(--gold-border);">
+                    <h5 class="mb-0" style="font-family: var(--font-heading); color: var(--gold-primary);">
+                        <i class="fas fa-star me-2"></i>Top 10 Món Đánh Giá Cao
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    {% for item in avg_ratings %}
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <strong style="color: var(--text-primary);">{{ item.menu_item__name }}</strong>
+                                <small class="d-block" style="color: var(--text-muted);">
+                                    {{ item.review_count }} đánh giá
+                                </small>
+                            </div>
+                            <div class="text-gold">
+                                <strong>{{ item.avg_rating|floatformat:1 }}</strong>
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

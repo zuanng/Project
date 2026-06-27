@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+
+{% block title %}Hồ Sơ Cá Nhân — FourSeason{% endblock %}
+
+{% block content %}
+<!-- Profile Hero -->
+<section class="profile-hero">
+    <div class="container-fluid px-4 py-5">
+        <div class="row align-items-center">
+            <div class="col-auto mb-3 mb-md-0">
+                {% if user.avatar %}
+                    <img src="{{ user.avatar.url }}" alt="{{ user.username }}"
+                         style="width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--gold-primary); object-fit: cover; box-shadow: var(--shadow-gold);">
+                {% else %}
+                    <div class="d-flex align-items-center justify-content-center"
+                         style="width: 100px; height: 100px; border-radius: 50%; background: var(--bg-tertiary); border: 3px solid var(--gold-primary);">
+                        <i class="fas fa-user fa-2x text-gold"></i>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="col">
+                <h2 class="fw-bold mb-1" style="font-family: var(--font-heading);">{{ user.get_full_name|default:user.username }}</h2>
+                <p class="mb-2" style="color: var(--text-muted);">
+                    <i class="fas fa-envelope me-1"></i> {{ user.email }}
+                    {% if user.phone %}
+                        <span class="ms-3"><i class="fas fa-phone me-1"></i> {{ user.phone }}</span>
+                    {% endif %}
+                </p>
+                <div>
+                    {% if user.role == 'admin' %}
+                        <span class="badge" style="background: var(--gold-primary); color: var(--text-inverse);"><i class="fas fa-crown"></i> Quản trị viên</span>
+                    {% elif user.role == 'staff' %}
+                        <span class="badge" style="background: var(--bg-elevated); color: var(--text-secondary); border: 1px solid var(--border-default);"><i class="fas fa-user-tie"></i> Nhân viên</span>
+                    {% else %}
+                        <span class="badge" style="background: var(--bg-elevated); color: var(--text-secondary); border: 1px solid var(--border-default);"><i class="fas fa-user"></i> Khách hàng</span>
+                    {% endif %}
+                    <span class="badge ms-2" style="background: var(--bg-elevated); color: var(--text-muted); border: 1px solid var(--border-subtle);">
+                        <i class="fas fa-calendar"></i> Tham gia {{ user.date_joined|date:"d/m/Y" }}
+                    </span>
+                </div>
+            </div>
+            <div class="col-auto">
+                <a href="{% url 'accounts:profile_edit' %}" class="btn btn-primary">
+                    <i class="fas fa-edit"></i> Chỉnh Sửa Hồ Sơ
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="container-fluid px-4 pb-5">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-lg-3 mb-4">
+            <div class="list-group" style="background: transparent; border-radius: var(--radius-lg); overflow: hidden;">
+                <a href="{% url 'accounts:profile' %}" class="list-group-item list-group-item-action"
+                   style="background: var(--gold-muted); color: var(--gold-primary); border: 1px solid var(--gold-border); border-radius: var(--radius-lg) var(--radius-lg) 0 0;">
+                    <i class="fas fa-user-circle me-2"></i> Thông tin cá nhân
+                </a>
+                {% if user.is_customer %}
+                    <a href="{% url 'reservations:reservation_list' %}" class="list-group-item list-group-item-action"
+                       style="background: transparent; color: var(--text-secondary); border: 1px solid var(--border-subtle); border-top: none;">
+                        <i class="fas fa-calendar-check me-2"></i> Đặt bàn của tôi
+                    </a>
+                {% endif %}
+                <a href="{% url 'accounts:logout' %}" class="list-group-item list-group-item-action"
+                   style="background: transparent; color: #ea868f; border: 1px solid var(--border-subtle); border-top: none; border-radius: 0 0 var(--radius-lg) var(--radius-lg);">
+                    <i class="fas fa-sign-out-alt me-2"></i> Đăng xuất
+                </a>
+            </div>
+
+            {% if user.is_customer %}
+                <div class="glass-card mt-3 p-4 text-center hover-lift">
+                    <i class="fas fa-star fa-2x text-gold mb-2"></i>
+                    <h3 class="fw-bold mb-0" style="color: var(--primary-color); font-family: var(--font-heading);">{{ profile.loyalty_points }}</h3>
+                    <p class="text-muted mb-0" style="color: var(--text-muted);">Điểm tích lũy</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-lg-9">
+            {% if user.is_customer %}
+                <div class="row mb-4 g-3">
+                    <div class="col-md-6">
+                        <div class="glass-card p-4 text-center hover-lift">
+                            <i class="fas fa-calendar-check fa-2x text-gold mb-2"></i>
+                            <h3 class="fw-bold mb-0" style="font-family: var(--font-heading); color: var(--text-primary);">0</h3>
+                            <p class="mb-0" style="color: var(--text-muted);">Đặt bàn</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="glass-card p-4 text-center hover-lift">
+                            <i class="fas fa-heart fa-2x text-gold mb-2"></i>
+                            <h3 class="fw-bold mb-0" style="font-family: var(--font-heading); color: var(--text-primary);">0</h3>
+                            <p class="mb-0" style="color: var(--text-muted);">Yêu thích</p>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Info Card -->
+            <div class="glass-card overflow-hidden" style="border-radius: var(--radius-lg);">
+                <div class="card-header py-3" style="background: rgba(201,168,76,0.08); border-bottom: 1px solid var(--gold-border);">
+                    <h5 class="mb-0" style="font-family: var(--font-heading); color: var(--gold-primary);">
+                        <i class="fas fa-id-card me-2"></i>Thông Tin Cá Nhân
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <div class="small mb-1" style="color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.04em;">Tên đăng nhập</div>
+                            <div style="color: var(--text-primary); font-weight: 500;">{{ user.username }}</div>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <div class="small mb-1" style="color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.04em;">Email</div>
+                            <div style="color: var(--text-primary); font-weight: 500;">{{ user.email }}</div>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <div class="small mb-1" style="color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.04em;">Họ và tên</div>
+                            <div style="color: var(--text-primary); font-weight: 500;">{{ user.get_full_name|default:"Chưa cập nhật" }}</div>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <div class="small mb-1" style="color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.04em;">Số điện thoại</div>
+                            <div style="color: var(--text-primary); font-weight: 500;">{{ user.phone|default:"Chưa cập nhật" }}</div>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <div class="small mb-1" style="color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.04em;">Ngày sinh</div>
+                            <div style="color: var(--text-primary); font-weight: 500;">{{ user.date_of_birth|date:"d/m/Y"|default:"Chưa cập nhật" }}</div>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <div class="small mb-1" style="color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.04em;">Ngày tham gia</div>
+                            <div style="color: var(--text-primary); font-weight: 500;">{{ user.date_joined|date:"d/m/Y" }}</div>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <a href="{% url 'accounts:profile_edit' %}" class="btn btn-primary">
+                            <i class="fas fa-edit"></i> Chỉnh sửa
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .profile-hero {
+        background: linear-gradient(135deg, rgba(201,168,76,0.08) 0%, transparent 60%);
+        border-bottom: 1px solid var(--border-subtle);
+    }
+</style>
+{% endblock %}

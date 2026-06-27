@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block title %}Chỉnh Sửa Hồ Sơ — FourSeason{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="text-center mb-4">
+                <h2 class="fw-bold mb-1" style="font-family: var(--font-heading);">Chỉnh Sửa Hồ Sơ</h2>
+                <div class="gold-divider-center"></div>
+            </div>
+
+            <div class="glass-card p-4" style="border-radius: var(--radius-xl);">
+                <form method="post" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+
+                    <h6 class="fw-bold mb-3" style="font-family: var(--font-heading); color: var(--gold-primary);">
+                        <i class="fas fa-user me-2"></i>Thông Tin Cá Nhân
+                    </h6>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Tên</label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}
+                                <div class="text-danger small mt-1">{{ form.first_name.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Họ</label>
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}
+                                <div class="text-danger small mt-1">{{ form.last_name.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label"><i class="fas fa-envelope me-1"></i> Email</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="text-danger small mt-1">{{ form.email.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="fas fa-phone me-1"></i> Số điện thoại</label>
+                            {{ form.phone }}
+                            {% if form.phone.errors %}
+                                <div class="text-danger small mt-1">{{ form.phone.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="fas fa-birthday-cake me-1"></i> Ngày sinh</label>
+                            {{ form.date_of_birth }}
+                            {% if form.date_of_birth.errors %}
+                                <div class="text-danger small mt-1">{{ form.date_of_birth.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label"><i class="fas fa-image me-1"></i> Ảnh đại diện</label>
+                        {% if user.avatar %}
+                            <div class="mb-2">
+                                <img src="{{ user.avatar.url }}" alt="Avatar" class="rounded"
+                                     style="width: 80px; height: 80px; object-fit: cover; border: 2px solid var(--gold-border);">
+                            </div>
+                        {% endif %}
+                        {{ form.avatar }}
+                        <small class="form-text" style="color: var(--text-muted);">Chọn ảnh JPG, PNG (tối đa 2MB)</small>
+                        {% if form.avatar.errors %}
+                            <div class="text-danger small mt-1">{{ form.avatar.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    {% if profile_form %}
+                        <div class="gold-divider mb-3 mt-3" style="width: 100%; height: 1px;"></div>
+
+                        <h6 class="fw-bold mb-3" style="font-family: var(--font-heading); color: var(--gold-primary);">
+                            <i class="fas fa-map-marker-alt me-2"></i>Địa Chỉ
+                        </h6>
+                        <div class="mb-3">
+                            <label class="form-label">Địa chỉ chi tiết</label>
+                            {{ profile_form.address }}
+                            {% if profile_form.address.errors %}
+                                <div class="text-danger small mt-1">{{ profile_form.address.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Thành phố</label>
+                                {{ profile_form.city }}
+                                {% if profile_form.city.errors %}
+                                    <div class="text-danger small mt-1">{{ profile_form.city.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Mã bưu điện</label>
+                                {{ profile_form.postal_code }}
+                                {% if profile_form.postal_code.errors %}
+                                    <div class="text-danger small mt-1">{{ profile_form.postal_code.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Lưu Thay Đổi
+                        </button>
+                        <a href="{% url 'accounts:profile' %}" class="btn btn-outline-light">
+                            <i class="fas fa-times"></i> Hủy
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

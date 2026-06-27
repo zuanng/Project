@@ -1,0 +1,223 @@
+{% extends 'base.html' %}
+
+{% block title %}Thực Đơn — FourSeason{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+    <!-- Page Header -->
+    <div class="text-center mb-4">
+        <p class="font-accent text-gold mb-1" style="font-size: 1rem; letter-spacing: 0.1em;">✦ Khám phá ✦</p>
+        <h2 class="fw-bold mb-2">Thực Đơn</h2>
+        <div class="gold-divider-center"></div>
+        <p class="text-muted mb-0 mt-2">{{ total_items }} món ăn tuyệt vời đang chờ bạn</p>
+    </div>
+
+    <div class="row g-4">
+        <!-- Sidebar Filters -->
+        <div class="col-lg-3">
+            <div class="glass-card p-3" style="position: sticky; top: 80px;">
+                <h6 class="fw-bold mb-3" style="font-family: var(--font-heading); color: var(--gold-primary);">
+                    <i class="fas fa-filter me-2"></i>Bộ Lọc
+                </h6>
+                <form method="get" id="filterForm">
+                    <div class="mb-3">
+                        <label class="form-label">Tìm kiếm</label>
+                        {{ form.q }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Danh mục</label>
+                        {{ form.category }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Khoảng giá</label>
+                        <div class="row g-2">
+                            <div class="col-6">{{ form.min_price }}</div>
+                            <div class="col-6">{{ form.max_price }}</div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            {{ form.vegetarian }}
+                            <label class="form-check-label" for="{{ form.vegetarian.id_for_label }}">
+                                <i class="fas fa-leaf text-success"></i> Chỉ món chay
+                            </label>
+                        </div>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="fas fa-search"></i> Tìm kiếm
+                        </button>
+                        <a href="{% url 'restaurant:menu_list' %}" class="btn btn-outline-light btn-sm">
+                            <i class="fas fa-redo"></i> Đặt lại
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Menu Items Grid -->
+        <div class="col-lg-9">
+            <!-- Sort & Cart bar -->
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <span style="color: var(--text-muted);">
+                    <strong style="color: var(--gold-primary);">{{ total_items }}</strong> món ăn
+                </span>
+                <div class="d-flex gap-2 align-items-center">
+                    <label class="mb-0 small" style="color: var(--text-muted);">Sắp xếp:</label>
+                    <select class="form-select form-select-sm" style="width: auto; min-width: 160px;" onchange="sortMenu(this.value)">
+                        <option value="-created_at" {% if request.GET.sort == '-created_at' %}selected{% endif %}>Mới nhất</option>
+                        <option value="price" {% if request.GET.sort == 'price' %}selected{% endif %}>Giá thấp → cao</option>
+                        <option value="-price" {% if request.GET.sort == '-price' %}selected{% endif %}>Giá cao → thấp</option>
+                        <option value="name" {% if request.GET.sort == 'name' %}selected{% endif %}>Tên A-Z</option>
+                    </select>
+                    <a href="{% url 'restaurant:cart_detail' %}" class="btn btn-sm btn-outline-light position-relative">
+                        <i class="fas fa-shopping-cart"></i>
+                        {% if cart|length > 0 %}
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">
+                                {{ cart|length }}
+                            </span>
+                        {% endif %}
+                    </a>
+                </div>
+            </div>
+
+            {% if page_obj %}
+                <div class="row g-4 mb-4">
+                    {% for item in page_obj %}
+                    <div class="col-sm-6 col-lg-4">
+                        <div class="card h-100 hover-lift border-0 overflow-hidden">
+                            <div class="card-img-container position-relative">
+                                <a href="{% url 'restaurant:menu_detail' item.slug %}">
+                                    {% if item.image %}
+                                        <img src="{{ item.image.url }}" class="card-img-top" alt="{{ item.name }}" style="height: 200px; object-fit: cover;">
+                                    {% else %}
+                                        <div class="d-flex align-items-center justify-content-center" style="height: 200px; background: var(--bg-tertiary);">
+                                            <i class="fas fa-utensils fa-3x" style="color: var(--text-muted);"></i>
+                                        </div>
+                                    {% endif %}
+                                </a>
+                                <!-- Overlay info -->
+                                <div class="position-absolute bottom-0 start-0 end-0 p-3" style="background: linear-gradient(transparent, rgba(10,10,10,0.9));">
+                                    <span class="badge" style="background: var(--gold-primary); color: var(--text-inverse); font-size: 0.65rem;">
+                                        {{ item.category.name }}
+                                    </span>
+                                    {% if item.is_vegetarian %}
+                                        <span class="badge bg-success" style="font-size: 0.65rem;"><i class="fas fa-leaf"></i></span>
+                                    {% endif %}
+                                    {% if item.is_spicy %}
+                                        <span class="badge" style="background: #dc3545; font-size: 0.65rem;"><i class="fas fa-pepper-hot"></i></span>
+                                    {% endif %}
+                                    {% if item.avg_rating %}
+                                        <span class="badge" style="background: rgba(201,168,76,0.9); color: var(--text-inverse); font-size: 0.65rem;">
+                                            <i class="fas fa-star"></i> {{ item.avg_rating|floatformat:1 }}
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                {% if item.discount_percentage %}
+                                    <div class="position-absolute top-0 end-0 m-2">
+                                        <span class="badge bg-danger" style="font-size: 0.75rem;">-{{ item.discount_percentage }}%</span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="card-body d-flex flex-column p-3">
+                                <h6 class="card-title fw-bold mb-1" style="font-family: var(--font-heading); font-size: 0.95rem;">
+                                    {{ item.name }}
+                                </h6>
+                                <p class="card-text small flex-grow-1 mb-2" style="color: var(--text-muted);">
+                                    {{ item.description|truncatewords:10 }}
+                                </p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        {% if item.discount_price %}
+                                            <small class="text-muted text-decoration-line-through" style="font-size: 0.75rem;">
+                                                {{ item.price|floatformat:0 }}đ
+                                            </small>
+                                            <div class="fw-bold" style="color: var(--gold-primary); font-size: 1.05rem;">
+                                                {{ item.discount_price|floatformat:0 }}đ
+                                            </div>
+                                        {% else %}
+                                            <div class="fw-bold" style="color: var(--gold-primary); font-size: 1.05rem;">
+                                                {{ item.price|floatformat:0 }}đ
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <form method="post" action="{% url 'restaurant:cart_add' item.id %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="quantity" value="1">
+                                        <button type="submit" class="btn btn-sm btn-primary" title="Thêm vào giỏ">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Pagination -->
+                {% if page_obj.has_other_pages %}
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">
+                                        <i class="fas fa-angle-double-left"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">
+                                        <i class="fas fa-angle-left"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if page_obj.number == num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">
+                                            {{ num }}
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">
+                                        <i class="fas fa-angle-right"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">
+                                        <i class="fas fa-angle-double-right"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-search fa-3x mb-3" style="color: var(--text-muted);"></i>
+                    <h4 style="color: var(--text-primary);">Không tìm thấy món ăn nào</h4>
+                    <p class="text-muted">Thử thay đổi bộ lọc hoặc tìm kiếm khác</p>
+                    <a href="{% url 'restaurant:menu_list' %}" class="btn btn-primary">
+                        Xem tất cả món
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    function sortMenu(sortValue) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('sort', sortValue);
+        window.location.href = url.toString();
+    }
+</script>
+{% endblock %}
